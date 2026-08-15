@@ -4,6 +4,7 @@ This project is built on the [Midnight Network](https://midnight.network/).
 
 [![Generic badge](https://img.shields.io/badge/Compact%20Compiler-0.30.0-1abc9c.svg)](https://shields.io/)
 [![Generic badge](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://shields.io/)
+[![CI](https://github.com/sylvia-barick/midlev4/actions/workflows/ci.yaml/badge.svg)](https://github.com/sylvia-barick/midlev4/actions)
 
 
 > **Use this repo as a template. Do not fork it.**
@@ -371,3 +372,14 @@ cd ..
 * **sync_balance Tx Hash**: `PENDING`
 * **post_payment Tx Hash**: `PENDING`
 * **claim_payment Tx Hash**: `PENDING`
+
+---
+
+## Level 4 Submission
+
+* **GitHub**: [https://github.com/sylvia-barick/midlev4](https://github.com/sylvia-barick/midlev4)
+* **Live Demo**: PENDING (Local/Preprod build verified; public deployment not yet performed)
+* **Preprod Contract**: PENDING (Requires on-chain Wallet A deployment)
+* **CI/CD**: [https://github.com/sylvia-barick/midlev4/actions/workflows/ci.yaml](https://github.com/sylvia-barick/midlev4/actions/workflows/ci.yaml)
+* **X (Twitter)**: PENDING (Requires manual account creation)
+* **Demo Video**: PENDING (Requires manual recording of E2E verification flow)
