@@ -15,6 +15,7 @@ A privacy-preserving group expense tracker and settlement application built on t
 * **Public GitHub Repository**: [https://github.com/sylvia-barick/midlev4](https://github.com/sylvia-barick/midlev4)
 * **Live Preprod Demo**: [https://midlev4.vercel.app/](https://midlev4.vercel.app/)
 * **Demo Video Folder**: [https://drive.google.com/drive/folders/1yGLrMIRjEJaOyin215wK-29l6Ppci6SN?usp=sharing](https://drive.google.com/drive/folders/1yGLrMIRjEJaOyin215wK-29l6Ppci6SN?usp=sharing)
+* **Contract Deployment Tx Hash**: `3cffa9d76a160c27c7d6f8299fbe3d2a3d3cb7b47382107cfd9c8804b1b55f66`
 * **Product X (Twitter) Profile**: [https://x.com/ConfSplits](https://x.com/ConfSplits)
 * **Real Preprod E2E Evidence**: Verified template references located in [`docs/PREPROD_EVIDENCE.md`](file:///docs/PREPROD_EVIDENCE.md) and [`docs/FINAL_E2E_TEST.md`](file:///docs/FINAL_E2E_TEST.md).
 
