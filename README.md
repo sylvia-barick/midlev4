@@ -1,6 +1,6 @@
 # Confidential Splits
 
-[![CI](https://github.com/sylvia-barick/midlev4/actions/workflows/ci.yaml/badge.svg)](https://github.com/sylvia-barick/midlev4/actions)
+
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://shields.io/)
 [![Midnight Network](https://img.shields.io/badge/Midnight-Preprod-darkviolet.svg)](https://midnight.network/)
 
