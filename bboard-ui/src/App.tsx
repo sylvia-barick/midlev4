@@ -588,13 +588,16 @@ const App: React.FC = () => {
       <Box
         sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}
       >
-        <Box>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-            CONFIDENTIAL SPLITS
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Privacy-Preserving Group Settlements on Midnight
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <img src="/logo.png" alt="Confidential Splits Logo" style={{ height: '60px', objectFit: 'contain' }} />
+          <Box>
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main', letterSpacing: '1px' }}>
+              CONFIDENTIAL SPLITS
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              Privacy-Preserving Group Settlements on Midnight
+            </Typography>
+          </Box>
         </Box>
         {walletConnected && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>

@@ -13,12 +13,35 @@ export const theme = createTheme({
     },
     background: {
       default: '#121218',
-      paper: '#1e1e28',
+      paper: 'rgba(25, 25, 35, 0.92)',
     },
     text: {
       primary: '#ffffff',
-      secondary: '#a0a0b0',
+      secondary: '#b8b8c8',
     },
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundImage: 'url("/back.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          minHeight: '100vh',
+        }
+      }
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+        }
+      }
+    }
   },
   typography: {
     fontFamily: 'Helvetica, Arial, sans-serif',
