@@ -1,4 +1,4 @@
 {
-  "buildCommand": "npm run build --workspace=bboard-ui",
+  "buildCommand": "npm run build --workspace=contract && npm run build --workspace=api && npm run build --workspace=bboard-ui",
   "outputDirectory": "bboard-ui/dist"
 }
