@@ -73,9 +73,67 @@ Confidential Splits utilizes Midnight's **Compact** smart contract language to w
 
 ---
 
-## ⚡ Smart Contract Circuits
+## ⚡ Smart Contract Details & State Layout
 
-The contract implements five main ZK proof circuits:
+The contract maintains the following public state layout on the ledger:
+* `members`: Vector of 4 public ZK keys. Unjoined slots remain empty (`pad(32, "")`).
+* `balance_commitments`: Vector of 4 Poseidon balance commitment hashes.
+* `pending_expense`: Structure holding `payer_idx`, `total_amount`, and `shares` vectors representing active splits.
+* `pending_payment`: Structure holding `debtor_idx`, `creditor_idx`, `amount`, and routing status flags.
+
+### 🔄 State Transition Flowcharts
+
+#### A. Expense Posting & Balance Sync Workflow
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Payer as Payer (Wallet A)
+  participant UI as DApp UI (Client)
+  participant Ledger as Midnight Ledger (Public)
+  actor Debtor as Debtor (Wallet B)
+
+  Payer->>UI: Input expense (e.g. 1200 tNight, Split 50/50)
+  UI->>UI: Compile ZK proof post_expense(0, 1200, [600, 600, 0, 0])
+  UI->>Ledger: Submit proof & update pending_expense metadata
+  Ledger-->>UI: Confirmed (Split registered)
+  
+  Note over Payer, Debtor: Synchronization Phase
+  Payer->>UI: Click "Sync Balance"
+  UI->>UI: Compile ZK proof sync_balance(0, oldBalance, newBalance)
+  UI->>Ledger: Submit new balance commitment hash
+  Ledger-->>UI: Confirmed (Payer balance updated client-side)
+  
+  Debtor->>UI: Click "Sync Balance"
+  UI->>UI: Compile ZK proof sync_balance(1, oldBalance, newBalance)
+  UI->>Ledger: Submit new balance commitment hash
+  Ledger-->>UI: Confirmed (Debtor balance updated client-side)
+```
+
+#### B. Settlement Payment & Claim Workflow
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Debtor as Debtor (Wallet B)
+  participant UI as DApp UI (Client)
+  participant Ledger as Midnight Ledger (Public)
+  actor Creditor as Creditor (Wallet A)
+
+  Debtor->>UI: Click "Pay Debt" (e.g. 600 tNight to Creditor)
+  UI->>UI: Compile ZK proof post_payment(1, 0, 600)
+  UI->>Ledger: Submit proof, update pending_payment, update debtor balance commitment
+  Ledger-->>UI: Confirmed (Payment posted and locked)
+  
+  Creditor->>UI: Click "Claim Payment"
+  UI->>UI: Compile ZK proof claim_payment()
+  UI->>Ledger: Submit proof, clear pending_payment, update creditor balance commitment
+  Ledger-->>UI: Confirmed (Funds claimed and settled)
+```
+
+---
+
+## ⚡ Smart Contract ZK Circuits
+
+The contract compiles five main ZK proof circuits:
 1. **`join_group(idx)`**: Guest users claim a vacant slot and write their public key.
 2. **`post_expense(payer_idx, amount, shares)`**: Validates that splits sum exactly to the total expense amount.
 3. **`sync_balance(idx, old_balance, old_salt, new_salt)`**: Locally updates and synchronizes net private balance commitments.
