@@ -589,7 +589,7 @@ const App: React.FC = () => {
         sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <img src="/logo.png" alt="Confidential Splits Logo" style={{ height: '60px', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="Confidential Splits Logo" style={{ height: '100px', objectFit: 'contain' }} />
           <Box>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main', letterSpacing: '1px' }}>
               CONFIDENTIAL SPLITS
