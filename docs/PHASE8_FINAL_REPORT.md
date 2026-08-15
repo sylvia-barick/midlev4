@@ -68,7 +68,7 @@ PASS
 PASS
 
 ## 12. Deployment
-PENDING
+https://midlev4.vercel.app/
 
 ## 13. Known Limitations
 * **Maximum 4 participants**: Constraint on ledger state vector sizes.
@@ -77,3 +77,9 @@ PENDING
 
 ## 14. Final Status
 PENDING REAL E2E EVIDENCE
+
+## 15. Level 4 Links
+* GitHub: https://github.com/sylvia-barick/midlev4
+* Demo: https://midlev4.vercel.app/
+* Video: https://drive.google.com/drive/folders/1yGLrMIRjEJaOyin215wK-29l6Ppci6SN?usp=sharing
+* X: https://x.com/Sylviabarick
