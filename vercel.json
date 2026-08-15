@@ -1,0 +1,4 @@
+{
+  "buildCommand": "npm run build --workspace=bboard-ui",
+  "outputDirectory": "bboard-ui/dist"
+}

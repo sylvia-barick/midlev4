@@ -64,5 +64,9 @@
   },
   "resolutions": {
     "@midnight-ntwrk/wallet-sdk": "1.2.0"
+  },
+  "scripts": {
+    "build": "npm run build --workspace=bboard-ui",
+    "test": "npm test --workspace=contract"
   }
 }
