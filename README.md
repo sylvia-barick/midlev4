@@ -142,7 +142,3 @@ This repository runs a continuous integration pipeline via GitHub Actions ([`.gi
 ![CI/CD Pipeline Verification](./public/cicd.png)
 
 ---
-
-## ⚠️ Known Constraints & Limitations
-* **Maximum 4 participants**: Group size is capped at 4 members. Larger groups require reallocating static vectors and compiling new ZK prover/verifier key structures.
-* **Sequential Sync**: State commitments are checked sequentially per participant to protect shielded balance transition invariants.
