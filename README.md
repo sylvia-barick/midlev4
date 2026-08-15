@@ -4,6 +4,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://shields.io/)
 [![Midnight Network](https://img.shields.io/badge/Midnight-Preprod-darkviolet.svg)](https://midnight.network/)
 
+![Confidential Splits Hero](./public/hero.png)
+
 A privacy-preserving group expense tracker and settlement application built on the **Midnight Network**. Confidential Splits simplifies collective debts while keeping individual running balances, private witnesses, and blinding factors completely private on-chain using Zero-Knowledge proofs.
 
 ---
@@ -15,6 +17,8 @@ A privacy-preserving group expense tracker and settlement application built on t
 * **Demo Video Folder**: [https://drive.google.com/drive/folders/1yGLrMIRjEJaOyin215wK-29l6Ppci6SN?usp=sharing](https://drive.google.com/drive/folders/1yGLrMIRjEJaOyin215wK-29l6Ppci6SN?usp=sharing)
 * **Product X (Twitter) Profile**: [https://x.com/Sylviabarick](https://x.com/Sylviabarick)
 * **Real Preprod E2E Evidence**: Verified template references located in [`docs/PREPROD_EVIDENCE.md`](file:///docs/PREPROD_EVIDENCE.md) and [`docs/FINAL_E2E_TEST.md`](file:///docs/FINAL_E2E_TEST.md).
+
+![Commit History Verification](./public/commit.png)
 
 ---
 
@@ -134,6 +138,8 @@ This repository runs a continuous integration pipeline via GitHub Actions ([`.gi
 1. Installs the Compact Compiler (`setup-compact-action` version `0.31.1`).
 2. Configures Node.js v24.
 3. Installs dependencies and runs typechecks, lints, and builds across all workspaces.
+
+![CI/CD Pipeline Verification](./public/cicd.png)
 
 ---
 
