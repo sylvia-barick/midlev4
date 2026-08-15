@@ -1,0 +1,261 @@
+pragma language_version 0.23;
+
+import CompactStandardLibrary;
+
+export ledger members: Vector<4, Bytes<32>>;
+export ledger balance_commitments: Vector<4, Bytes<32>>;
+
+export ledger pending_expense_amount: Field;
+export ledger pending_expense_payer_idx: Field;
+export ledger pending_expense_shares: Vector<4, Field>;
+export ledger synced_mask: Vector<4, Boolean>;
+
+export ledger pending_payment_from: Field;
+export ledger pending_payment_to: Field;
+export ledger pending_payment_amount: Field;
+export ledger pending_payment_status: Field; // 0 = none, 1 = posted
+
+constructor(initial_members: Vector<4, Bytes<32>>) {
+  members = disclose(initial_members);
+  
+  balance_commitments = [
+    commit(0, pad(32, "")),
+    commit(0, pad(32, "")),
+    commit(0, pad(32, "")),
+    commit(0, pad(32, ""))
+  ];
+  
+  synced_mask = [true, true, true, true];
+
+  pending_expense_amount = 0;
+  pending_expense_payer_idx = 0;
+  pending_expense_shares = [0, 0, 0, 0];
+  
+  pending_payment_from = 0;
+  pending_payment_to = 0;
+  pending_payment_amount = 0;
+  pending_payment_status = 0;
+}
+
+witness localSecretKey(): Bytes<32>;
+
+export circuit publicKey(sk: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "splits:pk:"), sk]);
+}
+
+export circuit commit(balance: Field, salt: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([balance as Bytes<32>, salt]);
+}
+
+export circuit post_expense(payer_idx: Field, amount: Field, shares: Vector<4, Field>): [] {
+  assert(synced_mask[0], "Previous expense not synced by participant 0");
+  assert(synced_mask[1], "Previous expense not synced by participant 1");
+  assert(synced_mask[2], "Previous expense not synced by participant 2");
+  assert(synced_mask[3], "Previous expense not synced by participant 3");
+  
+  const public_payer_idx = disclose(payer_idx);
+  const public_amount = disclose(amount);
+  const public_shares = disclose(shares);
+
+  if (public_payer_idx == 0) {
+    assert(members[0] == disclose(publicKey(localSecretKey())), "Caller is not the payer");
+  }
+  if (public_payer_idx == 1) {
+    assert(members[1] == disclose(publicKey(localSecretKey())), "Caller is not the payer");
+  }
+  if (public_payer_idx == 2) {
+    assert(members[2] == disclose(publicKey(localSecretKey())), "Caller is not the payer");
+  }
+  if (public_payer_idx == 3) {
+    assert(members[3] == disclose(publicKey(localSecretKey())), "Caller is not the payer");
+  }
+
+  const sum = public_shares[0] + public_shares[1] + public_shares[2] + public_shares[3];
+  assert(sum == public_amount, "Split shares must sum to total amount");
+
+  pending_expense_amount = public_amount;
+  pending_expense_payer_idx = public_payer_idx;
+  pending_expense_shares = public_shares;
+  
+  synced_mask = [false, false, false, false];
+}
+
+export circuit sync_balance(idx: Field, old_balance: Field, old_salt: Bytes<32>, new_salt: Bytes<32>): [] {
+  const public_idx = disclose(idx);
+
+  if (public_idx == 0) {
+    assert(members[0] == disclose(publicKey(localSecretKey())), "Caller is not the participant");
+    assert(!synced_mask[0], "Participant already synced this expense");
+    assert(balance_commitments[0] == commit(old_balance, old_salt), "Invalid old balance commitment");
+
+    const share = pending_expense_shares[0];
+    if (public_idx == pending_expense_payer_idx) {
+      const change = pending_expense_amount - share;
+      const new_balance = old_balance + change;
+      const new_commit = disclose(commit(new_balance, new_salt));
+      balance_commitments = [new_commit, balance_commitments[1], balance_commitments[2], balance_commitments[3]];
+      synced_mask = [true, synced_mask[1], synced_mask[2], synced_mask[3]];
+    } else {
+      const change = 0 - share;
+      const new_balance = old_balance + change;
+      const new_commit = disclose(commit(new_balance, new_salt));
+      balance_commitments = [new_commit, balance_commitments[1], balance_commitments[2], balance_commitments[3]];
+      synced_mask = [true, synced_mask[1], synced_mask[2], synced_mask[3]];
+    }
+  }
+  if (public_idx == 1) {
+    assert(members[1] == disclose(publicKey(localSecretKey())), "Caller is not the participant");
+    assert(!synced_mask[1], "Participant already synced this expense");
+    assert(balance_commitments[1] == commit(old_balance, old_salt), "Invalid old balance commitment");
+
+    const share = pending_expense_shares[1];
+    if (public_idx == pending_expense_payer_idx) {
+      const change = pending_expense_amount - share;
+      const new_balance = old_balance + change;
+      const new_commit = disclose(commit(new_balance, new_salt));
+      balance_commitments = [balance_commitments[0], new_commit, balance_commitments[2], balance_commitments[3]];
+      synced_mask = [synced_mask[0], true, synced_mask[2], synced_mask[3]];
+    } else {
+      const change = 0 - share;
+      const new_balance = old_balance + change;
+      const new_commit = disclose(commit(new_balance, new_salt));
+      balance_commitments = [balance_commitments[0], new_commit, balance_commitments[2], balance_commitments[3]];
+      synced_mask = [synced_mask[0], true, synced_mask[2], synced_mask[3]];
+    }
+  }
+  if (public_idx == 2) {
+    assert(members[2] == disclose(publicKey(localSecretKey())), "Caller is not the participant");
+    assert(!synced_mask[2], "Participant already synced this expense");
+    assert(balance_commitments[2] == commit(old_balance, old_salt), "Invalid old balance commitment");
+
+    const share = pending_expense_shares[2];
+    if (public_idx == pending_expense_payer_idx) {
+      const change = pending_expense_amount - share;
+      const new_balance = old_balance + change;
+      const new_commit = disclose(commit(new_balance, new_salt));
+      balance_commitments = [balance_commitments[0], balance_commitments[1], new_commit, balance_commitments[3]];
+      synced_mask = [synced_mask[0], synced_mask[1], true, synced_mask[3]];
+    } else {
+      const change = 0 - share;
+      const new_balance = old_balance + change;
+      const new_commit = disclose(commit(new_balance, new_salt));
+      balance_commitments = [balance_commitments[0], balance_commitments[1], new_commit, balance_commitments[3]];
+      synced_mask = [synced_mask[0], synced_mask[1], true, synced_mask[3]];
+    }
+  }
+  if (public_idx == 3) {
+    assert(members[3] == disclose(publicKey(localSecretKey())), "Caller is not the participant");
+    assert(!synced_mask[3], "Participant already synced this expense");
+    assert(balance_commitments[3] == commit(old_balance, old_salt), "Invalid old balance commitment");
+
+    const share = pending_expense_shares[3];
+    if (public_idx == pending_expense_payer_idx) {
+      const change = pending_expense_amount - share;
+      const new_balance = old_balance + change;
+      const new_commit = disclose(commit(new_balance, new_salt));
+      balance_commitments = [balance_commitments[0], balance_commitments[1], balance_commitments[2], new_commit];
+      synced_mask = [synced_mask[0], synced_mask[1], synced_mask[2], true];
+    } else {
+      const change = 0 - share;
+      const new_balance = old_balance + change;
+      const new_commit = disclose(commit(new_balance, new_salt));
+      balance_commitments = [balance_commitments[0], balance_commitments[1], balance_commitments[2], new_commit];
+      synced_mask = [synced_mask[0], synced_mask[1], synced_mask[2], true];
+    }
+  }
+}
+
+export circuit post_payment(debtor_idx: Field, creditor_idx: Field, amount: Field, old_balance: Field, old_salt: Bytes<32>, new_salt: Bytes<32>): [] {
+  assert(pending_payment_status == 0, "Other payment is pending");
+  
+  const public_debtor_idx = disclose(debtor_idx);
+  const public_creditor_idx = disclose(creditor_idx);
+  const public_amount = disclose(amount);
+
+  const new_balance = old_balance + public_amount;
+  const new_commit = disclose(commit(new_balance, new_salt));
+  
+  if (public_debtor_idx == 0) {
+    assert(members[0] == disclose(publicKey(localSecretKey())), "Caller is not the debtor");
+    assert(balance_commitments[0] == commit(old_balance, old_salt), "Invalid balance commitment");
+    balance_commitments = [new_commit, balance_commitments[1], balance_commitments[2], balance_commitments[3]];
+  }
+  if (public_debtor_idx == 1) {
+    assert(members[1] == disclose(publicKey(localSecretKey())), "Caller is not the debtor");
+    assert(balance_commitments[1] == commit(old_balance, old_salt), "Invalid balance commitment");
+    balance_commitments = [balance_commitments[0], new_commit, balance_commitments[2], balance_commitments[3]];
+  }
+  if (public_debtor_idx == 2) {
+    assert(members[2] == disclose(publicKey(localSecretKey())), "Caller is not the debtor");
+    assert(balance_commitments[2] == commit(old_balance, old_salt), "Invalid balance commitment");
+    balance_commitments = [balance_commitments[0], balance_commitments[1], new_commit, balance_commitments[3]];
+  }
+  if (public_debtor_idx == 3) {
+    assert(members[3] == disclose(publicKey(localSecretKey())), "Caller is not the debtor");
+    assert(balance_commitments[3] == commit(old_balance, old_salt), "Invalid balance commitment");
+    balance_commitments = [balance_commitments[0], balance_commitments[1], balance_commitments[2], new_commit];
+  }
+
+  pending_payment_from = public_debtor_idx;
+  pending_payment_to = public_creditor_idx;
+  pending_payment_amount = public_amount;
+  pending_payment_status = 1;
+}
+
+export circuit claim_payment(old_balance: Field, old_salt: Bytes<32>, new_salt: Bytes<32>): [] {
+  assert(pending_payment_status == 1, "No pending payment to claim");
+  
+  const creditor_idx = pending_payment_to;
+  const new_balance = old_balance - pending_payment_amount;
+  const new_commit = disclose(commit(new_balance, new_salt));
+
+  if (creditor_idx == 0) {
+    assert(members[0] == disclose(publicKey(localSecretKey())), "Caller is not the creditor");
+    assert(balance_commitments[0] == commit(old_balance, old_salt), "Invalid balance commitment");
+    balance_commitments = [new_commit, balance_commitments[1], balance_commitments[2], balance_commitments[3]];
+  }
+  if (creditor_idx == 1) {
+    assert(members[1] == disclose(publicKey(localSecretKey())), "Caller is not the creditor");
+    assert(balance_commitments[1] == commit(old_balance, old_salt), "Invalid balance commitment");
+    balance_commitments = [balance_commitments[0], new_commit, balance_commitments[2], balance_commitments[3]];
+  }
+  if (creditor_idx == 2) {
+    assert(members[2] == disclose(publicKey(localSecretKey())), "Caller is not the creditor");
+    assert(balance_commitments[2] == commit(old_balance, old_salt), "Invalid balance commitment");
+    balance_commitments = [balance_commitments[0], balance_commitments[1], new_commit, balance_commitments[3]];
+  }
+  if (creditor_idx == 3) {
+    assert(members[3] == disclose(publicKey(localSecretKey())), "Caller is not the creditor");
+    assert(balance_commitments[3] == commit(old_balance, old_salt), "Invalid balance commitment");
+    balance_commitments = [balance_commitments[0], balance_commitments[1], balance_commitments[2], new_commit];
+  }
+
+  pending_payment_status = 0;
+}
+
+export circuit join_group(idx: Field): [] {
+  const public_idx = disclose(idx);
+  
+  assert(public_idx != 0, "Cannot overwrite creator");
+  assert(public_idx == 1 || public_idx == 2 || public_idx == 3, "Invalid slot index");
+  
+  const caller_pk = disclose(publicKey(localSecretKey()));
+  
+  assert(members[0] != caller_pk, "Already a member");
+  assert(members[1] != caller_pk, "Already a member");
+  assert(members[2] != caller_pk, "Already a member");
+  assert(members[3] != caller_pk, "Already a member");
+
+  if (public_idx == 1) {
+    assert(members[1] == pad(32, ""), "Slot 1 already occupied");
+    members = [members[0], caller_pk, members[2], members[3]];
+  }
+  if (public_idx == 2) {
+    assert(members[2] == pad(32, ""), "Slot 2 already occupied");
+    members = [members[0], members[1], caller_pk, members[3]];
+  }
+  if (public_idx == 3) {
+    assert(members[3] == pad(32, ""), "Slot 3 already occupied");
+    members = [members[0], members[1], members[2], caller_pk];
+  }
+}
