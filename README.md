@@ -282,37 +282,53 @@ Any address in `preprod-addresses.csv`/`.txt` can be independently verified by a
 
 **Why it exists:** the Midnight indexer's GraphQL schema has no "list unique addresses" or "active users" query — `Query.transactions` only accepts a single tx hash, not a range. The only way to enumerate on-chain activity is `Query.block(offset: {height})`, one block at a time. `scan-preprod-addresses.ts` exists to do that walk safely, resumably, and rate-limit-aware, and to turn the result into an independently verifiable address list.
 
+
 ```mermaid
 flowchart TD
-  Start(["Start scan"]) --> Latest["Query latest block height\n(LatestHeight)"]
-  Latest --> Checkpoint{"Existing checkpoint\n(preprod-address-activity.json)?"}
-  Checkpoint -- "yes, same endHeight" --> Resume["Resume from\nlastScannedHeight + 1"]
-  Checkpoint -- "no" --> Range["Compute start height:\nSTART_HEIGHT / LOOKBACK_DAYS / genesis"]
-  Resume --> Loop
-  Range --> Loop["Worker pool (CONCURRENCY)\nqueries BlockOwners(height)"]
-  Loop --> Extract["Extract owner from every\nunshieldedCreatedOutputs / unshieldedSpentOutputs"]
-  Extract --> Dedup{"Address already\nrecorded?"}
-  Dedup -- "no" --> NewAddr["Create AddressRecord\n(firstSeen, lastSeen, counts)"]
-  Dedup -- "yes" --> UpdateAddr["Update created/spentCount,\nappend appearance (capped)"]
-  Extract --> ExcludeContracts["contractActions.address →\nuniqueContractAddresses (excluded)"]
-  Extract --> ExcludeAuthors["block.author →\nuniqueBlockAuthors (excluded)"]
-  NewAddr --> CheckStop{"STOP_AT_ADDRESS_COUNT\nreached? / endHeight hit? / SIGINT?"}
+  Start["Start scan"] --> Latest["Query latest block height"]
+  Latest --> Checkpoint{"Checkpoint exists"}
+
+  Checkpoint -- "Yes" --> Resume["Resume from last scanned height"]
+  Checkpoint -- "No" --> Range["Compute start height"]
+
+  Resume --> Loop["Worker pool queries BlockOwners"]
+  Range --> Loop
+
+  Loop --> Extract["Extract owners from unshielded outputs"]
+  Extract --> Dedup{"Address already recorded"}
+
+  Dedup -- "No" --> NewAddr["Create AddressRecord"]
+  Dedup -- "Yes" --> UpdateAddr["Update AddressRecord"]
+
+  Extract --> ExcludeContracts["Exclude contract addresses"]
+  Extract --> ExcludeAuthors["Exclude block author addresses"]
+
+  NewAddr --> CheckStop{"Stop condition reached"}
   UpdateAddr --> CheckStop
-  CheckStop -- "no, periodic" --> WriteCkpt["Write JSON checkpoint\nevery CHECKPOINT_EVERY blocks"]
+
+  CheckStop -- "No" --> WriteCkpt["Write checkpoint"]
   WriteCkpt --> Loop
-  CheckStop -- "yes" --> Export["exportResults():\nwrite CSV + TXT + verification file"]
-  Export --> End(["Scan stopped\n(complete / target hit / interrupted)"])
+
+  CheckStop -- "Yes" --> Export["Export CSV, TXT and verification file"]
+  Export --> End["Scan stopped"]
 ```
 
-- **Querying the indexer:** each block is fetched via the `BlockOwners(height)` GraphQL query, requesting `transactions { hash, unshieldedCreatedOutputs { owner }, unshieldedSpentOutputs { owner }, contractActions { address } }` for that height — fields verified directly against the installed indexer's generated schema (`node_modules/@midnight-ntwrk/midnight-js-indexer-public-data-provider`).
-- **Processing transactions:** every transaction's created and spent unshielded outputs are iterated; each `owner` becomes (or updates) an `AddressRecord` with `firstSeenHeight`, `lastSeenHeight`, `createdCount`, `spentCount`, and up to `MAX_STORED_APPEARANCES` (default 25) tx-hash/height/role entries — counts are always exact, only the detailed appearance list is capped.
-- **Removing duplicates:** the address map is keyed by the address string itself, so re-observing the same owner across blocks only updates its existing record — there is no separate dedup pass needed.
-- **Excluding contract/validator addresses:** `contractActions.address` values go into `uniqueContractAddresses`, and `block.author` values go into `uniqueBlockAuthors` — both tracked in separate sets and **never** merged into the exported wallet-address list, since neither represents an end-user wallet.
-- **Checkpoint/resume behavior:** progress is written to `OUTPUT_FILE` (default `preprod-address-activity.json`) every `CHECKPOINT_EVERY` blocks (default 200) and on `SIGINT`; re-running the same command resumes from `lastScannedHeight + 1` as long as `endHeight` hasn't changed.
-- **Output files:** `preprod-addresses.csv`, `preprod-addresses.txt`, and `preprod-addresses-verification.txt`, all (re)written whenever the scan stops for any reason, so partial results are always usable.
-- **Independent verification:** `exportResults()` builds ready-to-run `curl` commands (see [§7](#7-address-verification-instructions)) against the same public indexer, for the 5 most active addresses, so a reviewer never has to trust this repo's own claims.
+- **Querying the indexer:** each block is fetched via the `BlockOwners(height)` GraphQL query.
+
+- **Processing transactions:** every transaction's created and spent unshielded outputs are iterated; each `owner` becomes or updates an `AddressRecord`.
+
+- **Removing duplicates:** the address map is keyed by the address string itself, so re-observing the same owner updates its existing record.
+
+- **Excluding contract/validator addresses:** contract addresses and block-author addresses are tracked separately and are not included in the exported wallet-address list.
+
+- **Checkpoint/resume behavior:** progress is written to `preprod-address-activity.json` periodically and on `SIGINT`.
+
+- **Output files:** `preprod-addresses.csv`, `preprod-addresses.txt`, and `preprod-addresses-verification.txt` are written when the scan stops.
+
+- **Independent verification:** `exportResults()` builds ready-to-run `curl` commands against the public indexer.
 
 Run it yourself:
+
 ```bash
 cd bboard-cli
 LOOKBACK_DAYS=7 STOP_AT_ADDRESS_COUNT=50 npm run scan-preprod-addresses
