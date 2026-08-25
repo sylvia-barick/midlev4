@@ -4,6 +4,10 @@
 [![Midnight Network](https://img.shields.io/badge/Midnight-Preprod-darkviolet.svg)](https://midnight.network/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](./LICENSE)
 
+<p align="center">
+  <img src="home1.png"  alt="Confidential Splits dashboard">
+</p>  
+
 **A privacy-preserving group expense tracker and settlement dApp built on the Midnight Network.** Confidential Splits lets a group split shared costs and settle debts while keeping each member's running balance, blinding salts, and ZK witness keys private — only cryptographic commitments and settlement metadata ever touch the public ledger.
 
 | | |
@@ -11,10 +15,16 @@
 | **Repository** | [github.com/sylvia-barick/midlev4](https://github.com/sylvia-barick/midlev4) (public) |
 | **Live demo** | [midlev4.vercel.app](https://midlev4.vercel.app/) |
 | **Demo video** | [Google Drive folder](https://drive.google.com/drive/folders/1yGLrMIRjEJaOyin215wK-29l6Ppci6SN?usp=sharing) — `confidential splits.mp4` |
-| **Preprod addresses verified** | **339** distinct wallet addresses with real, independently verifiable on-chain activity — see [§6](#6-50-real-midnight-preprod-addresses) |
+| **Preprod addresses verified** | **339** distinct wallet addresses with real, independently verifiable on-chain activity — see [§6](#6-50-real-midnight-preprod-addresses) | 
 | **Contract deployment** | **Confirmed on real Preprod** — tx `3cffa9d76a160c27c7d6f8299fbe3d2a3d3cb7b47382107cfd9c8804b1b55f66`, block 2,119,943, contract address `9a378876a47bc46b81d275c8e0c6ba40163009184565eb35414c7cc9d62467fd` — see [§13](#13-implementation-status--commit-history) |
 | **Network** | Midnight **Preprod** testnet |
+---
+### User Flow
 
+<p align="center">
+  <img src="user.JPG" width="100%" alt="Confidential Splits user interface">
+  <img src="user1.png" width="100%" alt="Confidential Splits user interface">
+</p>
 
 ---
 
@@ -81,6 +91,16 @@ Code, contracts, and UI: **done and tested**. The app's own Preprod E2E transact
 
 ---
 
+### Dashboard
+
+<p align="center">
+  <img src="home1.png" width="32%" alt="Confidential Splits dashboard">
+  <img src="home2.png" width="32%" alt="Confidential Splits dashboard">
+  <img src="home3.png" width="32%" alt="Confidential Splits dashboard">
+</p>
+
+---
+
 ## 2. Key features
 
 | Feature | What it does | How it works | Where implemented | In live MVP? |
@@ -94,6 +114,14 @@ Code, contracts, and UI: **done and tested**. The app's own Preprod E2E transact
 | **Local ZK proof generation** | Proves circuit executions without a trusted server | Docker proof-server container (`proof-server-local.yml`) invoked via `midnight-js-http-client-proof-provider` | `bboard-cli/proof-server-local.yml`, `api/src/splits-api.ts` | Yes (required to run the app) |
 | **Preprod address discovery scanner** | Independently proves real wallet activity exists on Preprod | Walks the indexer block-by-block, records every `owner` on unshielded UTXOs | `bboard-cli/src/launcher/scan-preprod-addresses.ts` | N/A — a standalone CLI tool, not part of the deployed UI |
 | **Legacy bulletin-board contract** | Retained from the original Midnight example scaffold this project was built from | Simple post/take-down board, unrelated to Splits | `contract/src/bboard.compact` | No — not surfaced in the UI; kept only for its simulator tests |
+
+---
+
+### CI/CD
+
+<p align="center">
+  <img src="cicd.png" width="100%" alt="Confidential Splits CI/CD workflow">
+</p>
 
 ---
 
