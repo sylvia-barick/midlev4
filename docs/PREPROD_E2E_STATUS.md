@@ -6,11 +6,34 @@ This document records what was actually attempted, verified, and found while try
 
 It exists because the prior status ("PENDING" in `docs/PREPROD_EVIDENCE.md`, `docs/FINAL_E2E_TEST.md`, `docs/FINAL_E2E_MATRIX.md`) did not distinguish "not yet attempted" from "attempted and blocked by an identified, reproduced defect" — this document makes that distinction explicit, with evidence.
 
-**Bottom line: BLOCKED, not complete.** No deploy, `join_group`, `post_expense`, `sync_balance`, `post_payment`, or `claim_payment` transaction for this application has been submitted or confirmed on Preprod. No transaction hash, block height, or indexer confirmation exists for the app's own flow. Nothing in this document should be read as claiming otherwise.
+**Bottom line: PARTIALLY VERIFIED, still BLOCKED overall.** Contract **deployment** is confirmed on real Preprod (see §2 below) — this was discovered mid-investigation, not fabricated, and was independently verified against the live indexer using this project's own compiled contract decoder. `join_group`, `post_expense`, `sync_balance`, `post_payment`, and `claim_payment` have **not** been submitted or confirmed for this application. The overall app-owned E2E chain (7 steps) is **not complete**; 1 of 7 is confirmed, 6 remain blocked. Nothing in this document should be read as claiming the full chain passed.
 
 ---
 
-## 2. The intended real E2E flow
+## 2. Confirmed: contract deployment on real Preprod
+
+While reconciling this local investigation with `origin/master` (which had a commit predating this session, `8880f6f`, adding a bare "Contract Deployment Tx Hash" line to the README with no supporting context), that transaction hash was independently checked against the live Preprod indexer rather than accepted at face value.
+
+**Verification method:** queried `https://indexer.preprod.midnight.network/api/v4/graphql` directly for the transaction, then fetched the resulting contract address's live on-chain state and decoded it with this project's own compiled `Splits.ledger()` function (`contract/src/managed/splits/contract/index.js`) — the same decoder `bboard-ui` and `bboard-cli`'s launcher scripts use — rather than trusting the raw hex or the README string.
+
+| Field | Value |
+|---|---|
+| Transaction hash | `3cffa9d76a160c27c7d6f8299fbe3d2a3d3cb7b47382107cfd9c8804b1b55f66` |
+| Block height | `2,119,943` |
+| Contract address | `9a378876a47bc46b81d275c8e0c6ba40163009184565eb35414c7cc9d62467fd` |
+| `members` (decoded) | `[b4aea032b7491a837b6118108a7e2f334a7ffa6e75afa33c28e14e9080620a42, 0, 0, 0]` — one real pubkey in slot 0, slots 1-3 empty |
+| `balance_commitments` (decoded) | all four equal to `f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b`, i.e. the constructor's default `commit(0, pad(32,""))` |
+| `synced_mask` (decoded) | `[true, true, true, true]` — constructor default |
+| `pending_expense_amount` / `pending_payment_status` (decoded) | `0` / `0` — constructor defaults, nothing posted |
+| Is this the only action on this contract? | Yes — querying the address's *current* state and its *first* recorded transaction both resolve to this same tx hash |
+
+**What this proves:** a real Splits contract was genuinely deployed on Preprod, with a real creator public key in slot 0. **What this does not prove:** anything beyond deployment. The decoded state is byte-for-byte the constructor's genesis output — no `join_group`, `post_expense`, `sync_balance`, `post_payment`, or `claim_payment` has ever touched this contract instance.
+
+**Provenance:** this deployment was **not** produced by this repository's `preprod-splits-e2e.ts` or `populate-preprod.ts` (§6-§8 below) — both generate fresh random wallet seeds every run and neither ever got past the faucet-funding stage before hanging. This deployment predates this investigation entirely and most likely came from the real browser UI (`bboard-ui`) with an actual 1AM wallet — the intended end-user path this investigation did not have a working browser+extension setup to test directly (see §11).
+
+---
+
+## 3. The intended real E2E flow
 
 This is the exact chain that a successful run is required to complete, end to end, with no step skipped or simulated:
 
@@ -30,7 +53,7 @@ The exact code path was traced directly from source (not assumed) across `contra
 
 ---
 
-## 3. Environment and versions used
+## 4. Environment and versions used
 
 | Component | Value |
 |---|---|
@@ -44,7 +67,7 @@ The exact code path was traced directly from source (not assumed) across `contra
 
 ---
 
-## 4. What was independently confirmed working
+## 5. What was independently confirmed working
 
 Before concluding anything was "blocked," each of the following was verified in isolation, with no shortcuts:
 
@@ -57,7 +80,7 @@ Before concluding anything was "blocked," each of the following was verified in 
 
 ---
 
-## 5. Real attempted runs (evidence)
+## 6. Real attempted runs (evidence)
 
 All timestamps below are real log output from actual runs against the live Preprod network — not fabricated. No transaction hash, block height, or balance appears in this table because none was ever produced; only the funding request stage was reached before each run hung.
 
@@ -71,7 +94,7 @@ Each hung process was killed manually after the pattern was confirmed; associate
 
 ---
 
-## 6. Root cause: a reproducible hang inside the wallet SDK's dust-wallet sync
+## 7. Root cause: a reproducible hang inside the wallet SDK's dust-wallet sync
 
 Every attempt fails at the identical point, in the identical way:
 
@@ -89,13 +112,13 @@ This is the SDK authors' own documented awareness of a subscription-cursor edge 
 
 ---
 
-## 7. Confirmed not specific to this project's new code
+## 8. Confirmed not specific to this project's new code
 
 To rule out a bug introduced by `preprod-splits-e2e.ts` (written for this investigation), the exact same hang was reproduced using `bboard-cli/src/launcher/populate-preprod.ts` — a script that already existed in this repository, unmodified, targeting the legacy BBoard contract instead of Splits. It uses the identical wallet-build → faucet-fund → wait-for-balance code path (`MidnightWalletProvider`, `waitForUnshieldedFunds`, same wallet SDK). It hung in the identical way, at the identical point, with the identical log signature. This confirms the defect is in the shared wallet SDK layer, not in any Splits-specific or newly written code.
 
 ---
 
-## 8. Dependency upgrade investigation
+## 9. Dependency upgrade investigation
 
 Before concluding this was unfixable within safe bounds, the following was checked directly against the npm registry (not assumed):
 
@@ -110,7 +133,7 @@ The only actively-developed newer code is the `1.2.1-canary` / `2.0.0-beta` line
 
 ---
 
-## 9. Relationship to the 339 real Preprod addresses
+## 10. Relationship to the 339 real Preprod addresses
 
 **These are two entirely separate pieces of evidence and must not be conflated:**
 
@@ -121,7 +144,7 @@ The 339-address scan proves that real, observable Preprod activity genuinely exi
 
 ---
 
-## 10. Next possible resolution
+## 11. Next possible resolution
 
 Only legitimate options are listed. None of the following is claimed to be guaranteed, in progress, or already confirmed by anyone outside this investigation:
 
