@@ -17,6 +17,7 @@
 | **Demo video** | [Google Drive folder](https://drive.google.com/drive/folders/1yGLrMIRjEJaOyin215wK-29l6Ppci6SN?usp=sharing) — `confidential splits.mp4` |
 | **Preprod addresses verified** | **339** distinct wallet addresses with real, independently verifiable on-chain activity — see [§6](#6-50-real-midnight-preprod-addresses) | 
 | **Contract deployment** | **Confirmed on real Preprod** — tx `3cffa9d76a160c27c7d6f8299fbe3d2a3d3cb7b47382107cfd9c8804b1b55f66`, block 2,119,943, contract address `9a378876a47bc46b81d275c8e0c6ba40163009184565eb35414c7cc9d62467fd` — see [§13](#13-implementation-status--commit-history) |
+|**User Feedback Worksheet** | [User Feedbacks & Surveys](https://docs.google.com/spreadsheets/d/1BsMR8rPdG5nlihHdYONUzQYbPFtwB9ut0EiPQGeSeeQ/edit?usp=sharing)|
 | **Network** | Midnight **Preprod** testnet |
 ---
 ### User Flow
