@@ -356,20 +356,6 @@ LOOKBACK_DAYS=7 STOP_AT_ADDRESS_COUNT=50 npm run scan-preprod-addresses
 
 **User Feedback Worksheet**  [User Feedbacks & Surveys](https://docs.google.com/spreadsheets/d/1BsMR8rPdG5nlihHdYONUzQYbPFtwB9ut0EiPQGeSeeQ/edit?usp=sharing)
 
- Verified Midnight Preprod Wallet Addresses
-
-| # | Midnight Preprod Wallet Address | Verified Transaction | Block Height | Verification |
-|---:|---|---|---:|---|
-| 1 | `mn_addr_preprod14uvf6ayeytracv8kx89w06kluf6d7kefdruxzskskgy0dflku69sqp5x2e` | `36fa0da2bf03d5796c3b947c1634163091273bba12564749ad4594121abc8bd4` | 2,177,159 | ✅ Verified |
-| 2 | `mn_addr_preprod18d733aulfgfsqanhxmj3sdv8hfxmpasrnhzu8q02xzcl2ta2lyqq0vs0z2` | `07117ba89172cb9012b3fc7c42d446c5f3820fd3bca56a31b1784573419aa606` | 2,147,406 | ✅ Verified |
-| 3 | `mn_addr_preprod18ceretghv3q7q6sqp5ddfs44uky2c9vf5npxyznnvanqtxhvg2kqnpeul6` | `c8f5fa945e52ff8ce0d2f80d949218bf507e34a42279eafdb5dd5dc5dc2ac845` | 2,166,778 | ✅ Verified |
-| 4 | `mn_addr_preprod1whezef7xtp59us3mhppcxapezgh88y7auk7hlcwt329ua53pl43qq32j2r` | `13c281de1f7c04529d9b7d046680d4dfc9cbd28766a00f79fa2bcf8afb27ba49` | 2,177,164 | ✅ Verified |
-| 5 | `mn_addr_preprod1uhh8yrnw6gde32jtn30n7s8czuq4r70furt6knr6vrd9aa4elqhq9cyjgy` | `f20219369259d16e7341088ac42d61561277a0ae9be93adf94f88e8343943475` | 2,168,633 | ✅ Verified |
-| 6 | `mn_addr_preprod1tulkgkmdzxnakfy4f50gpwvwg7cmv66n2ua4mm4tenqesqfqv56qgkd6l4` | `3792b8d9d478df506ef5bd049502e495c3c5a96580c4eb49a2b2a7be7a9ce5fa` | 2,149,685 | ✅ Verified |
-| 7 | `mn_addr_preprod1wssgrx7f3er0dwdj6kun5e4s334u2wvcwpuvu7yz77wdz5stf7mqlt3lx9` | `669e83ee6b766de36cdadb8015995bda770d1b2116700cc7f029b3590c1fd0a6` | 2,166,756 | ✅ Verified |
-| 8 | `mn_addr_preprod1yes7584374jq6wegsl3texnff2lszufnxzwv7qhmndqp0svfpr3s3s2zfr` | `1a4c107c554b986e531c7f12dbe893fe99197d049733b8b83ff77df0a4460101` | 2,166,689 | ✅ Verified |
-| 9 | `mn_addr_preprod1x0v9p3muzp0kay5h2qsylkq8e3sjp7wmw2n6n03a4w22jm63ckgswns80n` | `b18d345e9f02b1a4a613cd4ef12e136d8b638a3a2e37dce6e7da2ed648df454b` | 2,183,377 | ✅ Verified |
-
 
 ---
 
