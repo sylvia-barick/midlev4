@@ -1,0 +1,19 @@
+Sample independent-verification queries for the 5 most active addresses found.
+Run each curl command yourself against the real Preprod indexer (https://indexer.preprod.midnight.network/api/v4/graphql);
+the address will appear as the "owner" field in the JSON response, proving the
+transaction genuinely exists on-chain and involves that address.
+
+# mn_addr_preprod14uvf6ayeytracv8kx89w06kluf6d7kefdruxzskskgy0dflku69sqp5x2e (first seen block 2177159, 634 appearance(s))
+curl -s -X POST https://indexer.preprod.midnight.network/api/v4/graphql -H 'content-type: application/json' -d '{"query":"query{transactions(offset:{hash:\"36fa0da2bf03d5796c3b947c1634163091273bba12564749ad4594121abc8bd4\"}){hash unshieldedCreatedOutputs{owner value tokenType} unshieldedSpentOutputs{owner value tokenType} block{height}}}"}'
+
+# mn_addr_preprod18d733aulfgfsqanhxmj3sdv8hfxmpasrnhzu8q02xzcl2ta2lyqq0vs0z2 (first seen block 2147406, 340 appearance(s))
+curl -s -X POST https://indexer.preprod.midnight.network/api/v4/graphql -H 'content-type: application/json' -d '{"query":"query{transactions(offset:{hash:\"07117ba89172cb9012b3fc7c42d446c5f3820fd3bca56a31b1784573419aa606\"}){hash unshieldedCreatedOutputs{owner value tokenType} unshieldedSpentOutputs{owner value tokenType} block{height}}}"}'
+
+# mn_addr_preprod18ceretghv3q7q6sqp5ddfs44uky2c9vf5npxyznnvanqtxhvg2kqnpeul6 (first seen block 2166778, 261 appearance(s))
+curl -s -X POST https://indexer.preprod.midnight.network/api/v4/graphql -H 'content-type: application/json' -d '{"query":"query{transactions(offset:{hash:\"c8f5fa945e52ff8ce0d2f80d949218bf507e34a42279eafdb5dd5dc5dc2ac845\"}){hash unshieldedCreatedOutputs{owner value tokenType} unshieldedSpentOutputs{owner value tokenType} block{height}}}"}'
+
+# mn_addr_preprod1whezef7xtp59us3mhppcxapezgh88y7auk7hlcwt329ua53pl43qq32j2r (first seen block 2177164, 256 appearance(s))
+curl -s -X POST https://indexer.preprod.midnight.network/api/v4/graphql -H 'content-type: application/json' -d '{"query":"query{transactions(offset:{hash:\"13c281de1f7c04529d9b7d046680d4dfc9cbd28766a00f79fa2bcf8afb27ba49\"}){hash unshieldedCreatedOutputs{owner value tokenType} unshieldedSpentOutputs{owner value tokenType} block{height}}}"}'
+
+# mn_addr_preprod1uhh8yrnw6gde32jtn30n7s8czuq4r70furt6knr6vrd9aa4elqhq9cyjgy (first seen block 2168633, 215 appearance(s))
+curl -s -X POST https://indexer.preprod.midnight.network/api/v4/graphql -H 'content-type: application/json' -d '{"query":"query{transactions(offset:{hash:\"f20219369259d16e7341088ac42d61561277a0ae9be93adf94f88e8343943475\"}){hash unshieldedCreatedOutputs{owner value tokenType} unshieldedSpentOutputs{owner value tokenType} block{height}}}"}'

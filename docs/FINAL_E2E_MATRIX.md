@@ -2,12 +2,14 @@
 
 This matrix tracks the execution status and transaction references of the real Preprod network E2E test.
 
+**Status: BLOCKED, not complete.** See [`docs/PREPROD_E2E_STATUS.md`](./PREPROD_E2E_STATUS.md) for the full investigation, real attempted-run evidence, and root cause (a reproducible hang in the installed Midnight wallet SDK's dust-wallet sync, confirmed with this repo's own pre-existing scripts too).
+
 | Operation | Wallet | Real Tx Hash | Confirmed | Evidence Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **Deployment** | Wallet A (Creator) | PENDING | PENDING | PENDING |
-| **join_group** | Wallet B (Member 1) | PENDING | PENDING | PENDING |
-| **post_expense** | Wallet A (Payer) | PENDING | PENDING | PENDING |
-| **sync_balance** | Wallet A | PENDING | PENDING | PENDING |
-| **sync_balance** | Wallet B | PENDING | PENDING | PENDING |
-| **post_payment** | Wallet B (Debtor) | PENDING | PENDING | PENDING |
-| **claim_payment**| Wallet A (Creditor) | PENDING | PENDING | PENDING |
+| **Deployment** | Wallet A (Creator) | BLOCKED | BLOCKED | BLOCKED |
+| **join_group** | Wallet B (Member 1) | BLOCKED | BLOCKED | BLOCKED |
+| **post_expense** | Wallet A (Payer) | BLOCKED | BLOCKED | BLOCKED |
+| **sync_balance** | Wallet A | BLOCKED | BLOCKED | BLOCKED |
+| **sync_balance** | Wallet B | BLOCKED | BLOCKED | BLOCKED |
+| **post_payment** | Wallet B (Debtor) | BLOCKED | BLOCKED | BLOCKED |
+| **claim_payment**| Wallet A (Creditor) | BLOCKED | BLOCKED | BLOCKED |

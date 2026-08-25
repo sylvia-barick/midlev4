@@ -61,3 +61,14 @@ jspm_packages/
 
 .claude
 .midnight-expert
+
+# Security: local Preprod E2E wallet seeds (private-key-equivalent material) - never commit.
+# Kept on disk locally since the E2E tooling reuses it across resumed runs.
+bboard-cli/preprod-splits-e2e-wallets.json
+
+# Stale/superseded scan artifact, superseded by preprod-addresses.csv/.txt
+bboard-cli/preprod-unique-addresses.json
+
+# Windows "downloaded from the internet" NTFS marker files (the WSL<->Windows boundary
+# sometimes mangles the ":" into a different byte sequence, so match on suffix only)
+*Zone.Identifier

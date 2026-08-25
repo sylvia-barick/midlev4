@@ -1,0 +1,12 @@
+{
+  "network": "preprod",
+  "indexerUrl": "https://indexer.preprod.midnight.network/api/v4/graphql",
+  "status": "blocked",
+  "error": "Reproducible hang in @midnight-ntwrk/wallet-sdk-dust-wallet's subscription sync immediately after faucet funding was requested, before any wallet balance was confirmed. Root-caused and documented in docs/PREPROD_E2E_STATUS.md. This file was last left in an 'in-progress' state by a killed hung process and has been manually annotated to 'blocked' to avoid implying a run is still active - no field below was fabricated or altered otherwise.",
+  "walletA": null,
+  "walletB": null,
+  "contractAddress": null,
+  "transactions": [],
+  "indexerVerification": null,
+  "updatedAt": "2026-08-25T15:48:38.157Z"
+}
