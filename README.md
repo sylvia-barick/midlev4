@@ -34,20 +34,21 @@
 1. [Project overview](#1-project-overview)
 2. [Key features](#2-key-features)
 3. [Architecture](#3-architecture)
-4. [Complete workflow](#4-complete-workflow)
-5. [Midnight Preprod verification](#5-midnight-preprod-verification)
-6. [50+ real Midnight Preprod addresses](#6-50-real-midnight-preprod-addresses)
-7. [Address verification instructions](#7-address-verification-instructions)
-8. [Data / scanning architecture](#8-data--scanning-architecture)
-9. [Feedback loop](#9-feedback-loop)
-10. [Documentation](#10-documentation)
-11. [Live demo & demo video](#11-live-demo--demo-video)
-12. [Submission checklist](#12-submission-checklist)
-13. [Implementation status & commit history](#13-implementation-status--commit-history)
-14. [Technology stack](#14-technology-stack)
-15. [Repository structure](#15-repository-structure)
-16. [Security & privacy](#16-security--privacy)
-17. [Reproducibility](#17-reproducibility)
+4. [Verified Midnight Preprod Wallet Addresses](#4-verified-midnight-preprod-wallet-addresses)
+5. [Complete workflow](#5-complete-workflow)
+6. [Midnight Preprod verification](#6-midnight-preprod-verification)
+7. [50+ real Midnight Preprod addresses](#7-50-real-midnight-preprod-addresses)
+8. [Address verification instructions](#8-address-verification-instructions)
+9. [Data / scanning architecture](#9-data--scanning-architecture)
+10. [Feedback loop](#10-feedback-loop)
+11. [Documentation](#11-documentation)
+12. [Live demo & demo video](#12-live-demo--demo-video)
+13. [Submission checklist](#13-submission-checklist)
+14. [Implementation status & commit history](#14-implementation-status--commit-history)
+15. [Technology stack](#15-technology-stack)
+16. [Repository structure](#16-repository-structure)
+17. [Security & privacy](#17-security--privacy)
+18. [Reproducibility](#18-reproducibility)
 
 ---
 
@@ -147,7 +148,27 @@ This is the real component graph of the repo's four workspaces — `contract`, `
 
 ---
 
-## 4. Complete workflow
+
+## 4.Verified Midnight Preprod Wallet Addresses
+
+
+| # | Midnight Preprod Wallet Address | Verified Transaction | Block Height | Verification |
+|---:|---|---|---:|---|
+| 1 | `mn_addr_preprod14uvf6ayeytracv8kx89w06kluf6d7kefdruxzskskgy0dflku69sqp5x2e` | `36fa0da2bf03d5796c3b947c1634163091273bba12564749ad4594121abc8bd4` | 2,177,159 | ✅ Verified |
+| 2 | `mn_addr_preprod18d733aulfgfsqanhxmj3sdv8hfxmpasrnhzu8q02xzcl2ta2lyqq0vs0z2` | `07117ba89172cb9012b3fc7c42d446c5f3820fd3bca56a31b1784573419aa606` | 2,147,406 | ✅ Verified |
+| 3 | `mn_addr_preprod18ceretghv3q7q6sqp5ddfs44uky2c9vf5npxyznnvanqtxhvg2kqnpeul6` | `c8f5fa945e52ff8ce0d2f80d949218bf507e34a42279eafdb5dd5dc5dc2ac845` | 2,166,778 | ✅ Verified |
+| 4 | `mn_addr_preprod1whezef7xtp59us3mhppcxapezgh88y7auk7hlcwt329ua53pl43qq32j2r` | `13c281de1f7c04529d9b7d046680d4dfc9cbd28766a00f79fa2bcf8afb27ba49` | 2,177,164 | ✅ Verified |
+| 5 | `mn_addr_preprod1uhh8yrnw6gde32jtn30n7s8czuq4r70furt6knr6vrd9aa4elqhq9cyjgy` | `f20219369259d16e7341088ac42d61561277a0ae9be93adf94f88e8343943475` | 2,168,633 | ✅ Verified |
+| 6 | `mn_addr_preprod1tulkgkmdzxnakfy4f50gpwvwg7cmv66n2ua4mm4tenqesqfqv56qgkd6l4` | `3792b8d9d478df506ef5bd049502e495c3c5a96580c4eb49a2b2a7be7a9ce5fa` | 2,149,685 | ✅ Verified |
+| 7 | `mn_addr_preprod1wssgrx7f3er0dwdj6kun5e4s334u2wvcwpuvu7yz77wdz5stf7mqlt3lx9` | `669e83ee6b766de36cdadb8015995bda770d1b2116700cc7f029b3590c1fd0a6` | 2,166,756 | ✅ Verified |
+| 8 | `mn_addr_preprod1yes7584374jq6wegsl3texnff2lszufnxzwv7qhmndqp0svfpr3s3s2zfr` | `1a4c107c554b986e531c7f12dbe893fe99197d049733b8b83ff77df0a4460101` | 2,166,689 | ✅ Verified |
+| 9 | `mn_addr_preprod1x0v9p3muzp0kay5h2qsylkq8e3sjp7wmw2n6n03a4w22jm63ckgswns80n` | `b18d345e9f02b1a4a613cd4ef12e136d8b638a3a2e37dce6e7da2ed648df454b` | 2,183,377 | ✅ Verified |
+
+
+
+---
+
+## 5. Complete workflow
 
 ```mermaid
 flowchart TD
@@ -207,7 +228,7 @@ sequenceDiagram
 
 ---
 
-## 5. Midnight Preprod verification
+## 6. Midnight Preprod verification
 
 This repo includes a standalone scanner (`bboard-cli/src/launcher/scan-preprod-addresses.ts`) that walks the **real, live Midnight Preprod indexer** block by block and records every distinct wallet address it observes acting on an unshielded UTXO.
 
@@ -233,7 +254,7 @@ The underlying scan checkpoint (`bboard-cli/preprod-address-activity.json`) has 
 
 ---
 
-## 6. 50+ real Midnight Preprod addresses
+## 7. 50+ real Midnight Preprod addresses
 
 The submission requirement was **50+ verifiable Preprod addresses**. The scan produced **339 — nearly 7× the requirement**, each with independently verifiable on-chain evidence.
 
@@ -251,7 +272,7 @@ The full list is **not** pasted into this README — link to the files above for
 
 ---
 
-## 7. Address verification instructions
+## 8. Address verification instructions
 
 Any address in `preprod-addresses.csv`/`.txt` can be independently verified by any reviewer, with no dependency on this repository being trusted:
 
@@ -279,7 +300,7 @@ Any address in `preprod-addresses.csv`/`.txt` can be independently verified by a
 
 ---
 
-## 8. Data / scanning architecture
+## 9. Data / scanning architecture
 
 **Why it exists:** the Midnight indexer's GraphQL schema has no "list unique addresses" or "active users" query — `Query.transactions` only accepts a single tx hash, not a range. The only way to enumerate on-chain activity is `Query.block(offset: {height})`, one block at a time. `scan-preprod-addresses.ts` exists to do that walk safely, resumably, and rate-limit-aware, and to turn the result into an independently verifiable address list.
 
@@ -337,7 +358,7 @@ LOOKBACK_DAYS=7 STOP_AT_ADDRESS_COUNT=50 npm run scan-preprod-addresses
 
 ---
 
-## 9. Feedback loop
+## 10. Feedback loop
 
 **What actually exists in this repo:**
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — generic, inherited from the upstream Midnight example template. It describes a general issue/PR process ("submit an issue", "code review... address feedback from reviewers") but is not specific to this project and documents no concrete feedback that was received or acted on.
@@ -352,7 +373,7 @@ LOOKBACK_DAYS=7 STOP_AT_ADDRESS_COUNT=50 npm run scan-preprod-addresses
 
 ---
 
-## 10. Documentation
+## 11. Documentation
 
 All links below point to files that exist in this repository.
 
@@ -404,7 +425,7 @@ All links below point to files that exist in this repository.
 
 ---
 
-## 11. Live demo & demo video
+## 12. Live demo & demo video
 
 **Live demo:** [https://midlev4.vercel.app/](https://midlev4.vercel.app/) — deployed from `bboard-ui/dist` per `vercel.json`. The endpoint responds and serves the built SPA; exercising the full flow requires a 1AM wallet extension (set to Preprod) and a locally running proof server (`docker compose -f bboard-cli/proof-server-local.yml up -d`), per [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md).
 
@@ -412,7 +433,7 @@ All links below point to files that exist in this repository.
 
 ---
 
-## 12. Submission checklist
+## 13. Submission checklist
 
 - [x] **Public GitHub repository** — [github.com/sylvia-barick/midlev4](https://github.com/sylvia-barick/midlev4), confirmed public (0 stars/forks, publicly readable).
 - [ ] **Updated documentation, committed and pushed** — this README rewrite and the new Preprod scan files exist in the local working tree but are **untracked / uncommitted** as of this writing (`git status`). Nothing here is on GitHub yet.
@@ -427,7 +448,7 @@ Two items are **not yet satisfied** and should not be marked done: the documenta
 
 ---
 
-## 13. Implementation status & commit history
+## 14. Implementation status & commit history
 
 **Automated verification (all currently passing):**
 
@@ -495,7 +516,7 @@ This comfortably exceeds the 20-commit minimum; no commits were fabricated or pa
 
 ---
 
-## 14. Technology stack
+## 15. Technology stack
 
 | Technology | Role |
 |---|---|
@@ -515,7 +536,7 @@ This comfortably exceeds the 20-commit minimum; no commits were fabricated or pa
 
 ---
 
-## 15. Repository structure
+## 16. Repository structure
 
 ```
 level4/
@@ -548,7 +569,7 @@ Generated/vendor directories (`node_modules/`, `bboard-ui/.vite/`, `dist/`) are 
 
 ---
 
-## 16. Security / privacy
+## 17. Security / privacy
 
 - **No private keys, seed phrases, or mnemonics are committed.** Confirmed by searching tracked files: only `.env.example`, `bboard-ui/.env.preprod`, and `bboard-ui/.env.preview` are tracked, and all three contain only public network configuration (`MIDNIGHT_NETWORK_ID`, RPC/indexer URLs, `VITE_NETWORK_ID`, log level) — zero credentials.
 - **The real `.env`** (with any locally-set values) is excluded via `.gitignore` and was not found in `git ls-files`.
@@ -559,7 +580,7 @@ Generated/vendor directories (`node_modules/`, `bboard-ui/.vite/`, `dist/`) are 
 
 ---
 
-## 17. Reproducibility
+## 18. Reproducibility
 
 ```bash
 # 1. Clone
