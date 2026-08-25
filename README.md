@@ -15,7 +15,6 @@
 | **Contract deployment** | **Confirmed on real Preprod** — tx `3cffa9d76a160c27c7d6f8299fbe3d2a3d3cb7b47382107cfd9c8804b1b55f66`, block 2,119,943, contract address `9a378876a47bc46b81d275c8e0c6ba40163009184565eb35414c7cc9d62467fd` — see [§13](#13-implementation-status--commit-history) |
 | **Network** | Midnight **Preprod** testnet |
 
-> **Status at a glance:** the contracts, UI, CLI, and settlement engine are fully implemented and pass all automated tests (27/27). The app's own contract **deployment is confirmed on real Preprod** (verified below). The rest of the end-to-end wallet-to-wallet flow (join → expense → sync → settle) is currently **BLOCKED**: a real attempt against live Preprod was made and root-caused to a reproducible hang in the installed Midnight wallet SDK's dust-wallet sync, reproduced with this repo's own pre-existing scripts too — see [`docs/PREPROD_E2E_STATUS.md`](./docs/PREPROD_E2E_STATUS.md) for full evidence and [§13](#13-implementation-status--commit-history) for the summary. The 339 addresses above come from an independent chain-scanning tool included in this repo, not from app usage or this deployment.
 
 ---
 
