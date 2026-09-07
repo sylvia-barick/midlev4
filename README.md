@@ -15,7 +15,7 @@
 | **Repository** | [github.com/sylvia-barick/midlev4](https://github.com/sylvia-barick/midlev4) (public) |
 | **Live demo** | [midlev4.vercel.app](https://midlev4.vercel.app/) |
 | **Demo video** | [Google Drive folder](https://drive.google.com/drive/folders/1yGLrMIRjEJaOyin215wK-29l6Ppci6SN?usp=sharing) — `confidential splits.mp4` |
-| **Preprod addresses verified** | **339** distinct wallet addresses with real, independently verifiable on-chain activity — see [§6](#6-50-real-midnight-preprod-addresses) | 
+| **Preprod addresses verified** | **356** distinct wallet addresses with real, independently verifiable on-chain activity — see [§6](#6-50-real-midnight-preprod-addresses) | 
 | **Contract deployment** | **Confirmed on real Preprod** — tx `3cffa9d76a160c27c7d6f8299fbe3d2a3d3cb7b47382107cfd9c8804b1b55f66`, block 2,119,943, contract address `9a378876a47bc46b81d275c8e0c6ba40163009184565eb35414c7cc9d62467fd` — see [§13](#13-implementation-status--commit-history) |
 |**User Feedback Worksheet** | [User Feedbacks & Surveys](https://docs.google.com/spreadsheets/d/1BsMR8rPdG5nlihHdYONUzQYbPFtwB9ut0EiPQGeSeeQ/edit?usp=sharing)|
 | **Network** | Midnight **Preprod** testnet |
@@ -228,9 +228,9 @@ sequenceDiagram
 
 This repo includes a standalone scanner (`bboard-cli/src/launcher/scan-preprod-addresses.ts`) that walks the **real, live Midnight Preprod indexer** block by block and records every distinct wallet address it observes acting on an unshielded UTXO.
 
-**Result: 339 distinct verifiable Midnight Preprod wallet addresses with real, observable on-chain activity.**
+**Result: 356 distinct verifiable Midnight Preprod wallet addresses with real, observable on-chain activity.**
 
-These are **not** "339 unique humans." They are 339 distinct observable wallet addresses with real Preprod transaction activity. Public blockchain data alone cannot prove that each address belongs to a different person:
+These are **not** "356 unique humans." They are 356 distinct observable wallet addresses with real Preprod transaction activity. Public blockchain data alone cannot prove that each address belongs to a different person:
 
 > One person can control multiple addresses, and shielded (private) transaction participants are not publicly observable at all — that is the entire point of shielding. This scan is a lower/proxy bound on network activity, not a headcount.
 
@@ -239,27 +239,27 @@ These are **not** "339 unique humans." They are 339 distinct observable wallet a
 | Metric | Value | Source |
 |---|---|---|
 | Indexer queried | `https://indexer.preprod.midnight.network/api/v4/graphql` (the same endpoint documented at [docs.midnight.network](https://docs.midnight.network/guides/networks-and-environments)) | `.env.example`, scanner source |
-| Block range covered by the 339 exported addresses | heights **2,147,406 – 2,200,262** | computed directly from `bboard-cli/preprod-addresses.csv` |
+| Block range covered by the 356 exported addresses | heights **2,147,406 – 2,200,262** | computed directly from `bboard-cli/preprod-addresses.csv` |
 | Total recorded UTXO appearances (created + spent) across those addresses | **5,488** | computed directly from `bboard-cli/preprod-addresses.csv` |
 | Contract addresses excluded from the export | tracked separately via `contractActions.address`, never written to the address list | scanner source, `uniqueContractAddresses` |
 | Validator / block-author addresses excluded | tracked separately via `block.author`, never written to the address list | scanner source, `uniqueBlockAuthors` |
 | Per-address metadata collected | total/created/spent counts, first/last-seen block height, up to 25 stored tx-hash+height+role appearances per address | `bboard-cli/preprod-addresses.csv` columns |
 | Independent verification | every address is reproducible by re-querying the same public indexer for its recorded tx hash(es) | `bboard-cli/preprod-addresses-verification.txt` |
 
-The underlying scan checkpoint (`bboard-cli/preprod-address-activity.json`) has continued running since the 339-address export and, as of its last checkpoint write, has accumulated **356** raw candidate addresses across blocks 2,146,967–2,207,966 (61,000 blocks, 6,761 transactions scanned, 374 contract addresses and 13 validator addresses excluded). Those extra addresses have **not** been re-exported to the CSV/TXT/verification files yet — re-running `npm run scan-preprod-addresses` (see [§8](#8-data--scanning-architecture)) will refresh the exports to include them. **The 339 figure used throughout this README is the one actually backed by the exported, linkable files.**
+The underlying scan checkpoint (`bboard-cli/preprod-address-activity.json`) has continued running since the 356-address export and, as of its last checkpoint write, has accumulated **356** raw candidate addresses across blocks 2,146,967–2,207,966 (61,000 blocks, 6,761 transactions scanned, 374 contract addresses and 13 validator addresses excluded). Those extra addresses have **not** been re-exported to the CSV/TXT/verification files yet — re-running `npm run scan-preprod-addresses` (see [§8](#8-data--scanning-architecture)) will refresh the exports to include them. **The 356 figure used throughout this README is the one actually backed by the exported, linkable files.**
 
 ---
 
 ## 7. 50+ real Midnight Preprod addresses
 
-The submission requirement was **50+ verifiable Preprod addresses**. The scan produced **339 **, each with independently verifiable on-chain evidence.
+The submission requirement was **50+ verifiable Preprod addresses**. The scan produced **356 **, each with independently verifiable on-chain evidence.
 
 Three files hold the complete, real result set (all in `bboard-cli/`):
 
 | File | Contents |
 |---|---|
 | [`bboard-cli/preprod-addresses.csv`](./bboard-cli/preprod-addresses.csv) | Full data set: address, total/created/spent appearance counts, first/last-seen block height, and the semicolon-separated list of tx-hash(role@height) records backing each address |
-| [`bboard-cli/preprod-addresses.txt`](./bboard-cli/preprod-addresses.txt) | The same 339 addresses, one per line, sorted by activity |
+| [`bboard-cli/preprod-addresses.txt`](./bboard-cli/preprod-addresses.txt) | The same 356 addresses, one per line, sorted by activity |
 | [`bboard-cli/preprod-addresses-verification.txt`](./bboard-cli/preprod-addresses-verification.txt) | Ready-to-run `curl` commands against the live indexer for the 5 most active addresses, so a reviewer can verify without touching any code |
 
 
