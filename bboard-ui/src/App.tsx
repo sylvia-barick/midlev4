@@ -5,7 +5,6 @@ import {
   Typography,
   Button,
   Grid,
-  CircularProgress,
   Alert,
   Paper,
   Divider,
@@ -14,10 +13,12 @@ import {
   Select,
   FormControl,
   InputLabel,
-  List,
-  ListItem,
-  ListItemText,
   Chip,
+  Stack,
+  Snackbar,
+  LinearProgress,
+  Skeleton,
+  Fade,
 } from '@mui/material';
 import {
   Dns as RpcIcon,
@@ -27,6 +28,12 @@ import {
   AddCircleOutlined as ExpenseIcon,
   GroupAdd as GroupIcon,
   ContentCopy as CopyIcon,
+  GroupsOutlined as GroupsIcon,
+  ShieldMoonOutlined as ShieldIcon,
+  InsightsOutlined as InsightsIcon,
+  AutoAwesomeOutlined as SparkleIcon,
+  VerifiedOutlined as VerifiedIcon,
+  EastRounded as ArrowIcon,
 } from '@mui/icons-material';
 import { DeployedSplitsContext } from './contexts/DeployedSplitsContext';
 import { SplitsAPI, type SplitsDerivedState } from '../../api/src/index';
@@ -36,6 +43,15 @@ import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { calculateSettlement, type ParticipantBalance } from '@midnight-ntwrk/bboard-contract';
 import * as Splits from '../../contract/src/managed/splits/contract/index.js';
 import { toHex } from '@midnight-ntwrk/midnight-js-utils';
+import { TopNav } from './components/cs/TopNav';
+import { SectionCard } from './components/cs/SectionCard';
+import { Kicker } from './components/cs/Kicker';
+import { WorkflowStepper } from './components/cs/WorkflowStepper';
+import { TxTimeline } from './components/cs/TxTimeline';
+import { InfraStatusRow } from './components/cs/InfraStatus';
+import { MonoTag } from './components/cs/MonoTag';
+import { Footer } from './components/cs/Footer';
+import { useCountUp } from './hooks/useMotion';
 
 interface SystemHealthResponse {
   result?: {
@@ -51,6 +67,8 @@ interface ErrorDetails {
   code?: string;
   stack?: string;
 }
+
+const EMPTY_MEMBER = '0000000000000000000000000000000000000000000000000000000000000000';
 
 const secretKeys = [
   new Uint8Array(32).map((_, i) => i), // User 0 secret key
@@ -99,7 +117,7 @@ const App: React.FC = () => {
   const [walletAddress, setWalletAddress] = useState<string>('');
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   const [shieldedKeys, setShieldedKeys] = useState<{ coin: string; encryption: string } | null>(null);
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+
   const [walletNetwork, setWalletNetwork] = useState<string>('');
 
   // Diagnostic states
@@ -144,6 +162,13 @@ const App: React.FC = () => {
   // Invite Link Check
   const [inviteAddress, setInviteAddress] = useState<string>('');
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+
+  // Presentation-only: transient toast mirroring the final transaction outcome
+  const [toast, setToast] = useState<{ open: boolean; severity: 'success' | 'error'; msg: string }>({
+    open: false,
+    severity: 'success',
+    msg: '',
+  });
 
   // Detect 1AM wallet presence
   const checkOneAmPresence = (): boolean => {
@@ -242,7 +267,14 @@ const App: React.FC = () => {
     } catch (e: unknown) {
       console.error('Wallet connection failed:', e);
       setWalletConnected(false);
-      setTxError('Wallet connection failed.');
+      // Presentation only: surface the *actual* reason instead of a dead-end string.
+      const reason = e instanceof Error && e.message ? e.message : String(e);
+      const noExtension = typeof window === 'undefined' || !window.midnight?.['1am'];
+      setTxError(
+        noExtension
+          ? 'No 1AM Wallet found in this browser. Install the 1AM Wallet extension, unlock it and switch it to the Preprod network, then reload this page.'
+          : `Wallet handshake failed: ${reason}. Check that the 1AM Wallet is unlocked, set to Preprod, and that the local proof server (localhost:6300) is running.`,
+      );
     }
   };
 
@@ -324,6 +356,7 @@ const App: React.FC = () => {
     setTxErrorDetails(null);
 
     try {
+      setNetworkId('preprod');
       setTxStage('PROVING');
       const secretKey = await hashAddressToSecretKey(walletAddress);
 
@@ -360,12 +393,11 @@ const App: React.FC = () => {
     }
 
     try {
+      setNetworkId('preprod');
       setTxStage('PROVING');
 
       // Calculate active members count
-      const activeMembers = ledgerState.members.filter(
-        (m) => m !== '0000000000000000000000000000000000000000000000000000000000000000',
-      );
+      const activeMembers = ledgerState.members.filter((m) => m !== EMPTY_MEMBER);
       const activeCount = BigInt(activeMembers.length);
 
       // Equal split among active members only
@@ -375,7 +407,7 @@ const App: React.FC = () => {
       const shares = [0n, 0n, 0n, 0n];
       let assignedIndex = 0;
       ledgerState.members.forEach((m, idx) => {
-        if (m !== '0000000000000000000000000000000000000000000000000000000000000000') {
+        if (m !== EMPTY_MEMBER) {
           shares[idx] = shareVal + (assignedIndex === 0 ? remainder : 0n);
           assignedIndex++;
         }
@@ -403,6 +435,7 @@ const App: React.FC = () => {
     }
 
     try {
+      setNetworkId('preprod');
       setTxStage('PROVING');
       setTxStage('AWAITING_WALLET');
       await splitsAPI.syncBalance(currentUserIdx, ledgerState);
@@ -426,6 +459,7 @@ const App: React.FC = () => {
     }
 
     try {
+      setNetworkId('preprod');
       setTxStage('PROVING');
       setTxStage('AWAITING_WALLET');
       await splitsAPI.postPayment(debtorIdx, creditorIdx, amount);
@@ -449,6 +483,7 @@ const App: React.FC = () => {
     }
 
     try {
+      setNetworkId('preprod');
       setTxStage('PROVING');
       setTxStage('AWAITING_WALLET');
       await splitsAPI.claimPayment(ledgerState);
@@ -496,6 +531,21 @@ const App: React.FC = () => {
       clearInterval(intervalId);
     };
   }, []);
+
+  // Dismiss the pre-hydration splash once React has painted.
+  useEffect(() => {
+    const id = window.setTimeout(() => document.body.classList.add('app-ready'), 60);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  // Presentation-only: surface a toast whenever a transaction settles.
+  useEffect(() => {
+    if (txStage === 'CONFIRMED') {
+      setToast({ open: true, severity: 'success', msg: 'Transaction confirmed on Midnight Preprod.' });
+    } else if (txStage === 'FAILED' || txStage === 'REJECTED') {
+      setToast({ open: true, severity: 'error', msg: txError || 'The transaction did not go through.' });
+    }
+  }, [txStage, txError]);
 
   // Sync observable ledger updates when contract joins/deploys
   useEffect(() => {
@@ -551,7 +601,7 @@ const App: React.FC = () => {
     const pBalances: ParticipantBalance[] = [];
     for (let i = 0; i < 4; i++) {
       const member = ledgerState.members[i];
-      if (member !== '0000000000000000000000000000000000000000000000000000000000000000') {
+      if (member !== EMPTY_MEMBER) {
         pBalances.push({
           participantId: `User ${i}`,
           balance: ledgerState.balances[i] || 0n,
@@ -582,137 +632,254 @@ const App: React.FC = () => {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  // ----- Presentation-only derived values -------------------------------------
+
+  const infraHealthy = rpcStatus === 'CONNECTED' && indexerStatus === 'CONNECTED' && proofServerStatus === 'CONNECTED';
+
+  const shortWallet = walletAddress.startsWith('mock_wallet_address_')
+    ? walletAddress
+    : walletAddress
+      ? `${walletAddress.slice(0, 6)}····${walletAddress.slice(-4)}`
+      : '';
+
+  const roleLabel = walletConnected
+    ? currentUserIdx !== null
+      ? `Member · slot ${currentUserIdx}`
+      : 'Guest viewer'
+    : undefined;
+
+  const memberCount = ledgerState ? ledgerState.members.filter((m) => m !== EMPTY_MEMBER).length : 0;
+  const allSynced = ledgerState ? ledgerState.synced_mask.every(Boolean) : false;
+  const hasPendingPayment = ledgerState?.pending_payment_status === 1n;
+
+  const activeStep = (() => {
+    if (!walletConnected) return 0;
+    if (!ledgerState) return 1;
+    if (currentUserIdx === null) return 1;
+    if (hasPendingPayment || optimizedSettlements.length > 0) return 4;
+    if (!allSynced) return 3;
+    return 2;
+  })();
+
+  const netBalance = ledgerState && currentUserIdx !== null ? ledgerState.balances[currentUserIdx] || 0n : 0n;
+  const animatedBalance = useCountUp(Number(netBalance));
+  const connectingToGroup = walletConnected && !!splitsAPI && !ledgerState;
+
+  const SPEC = [
+    { k: 'commitments', v: 'Balances stored on-chain only as hash commitments' },
+    { k: 'proofs', v: 'Every state transition proven locally with zero-knowledge' },
+    { k: 'settlement', v: 'Greedy min-cash-flow reduces N debts to the fewest transfers' },
+  ];
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* 1. Header & Switcher */}
-      <Box
-        sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <img src="/logo.png" alt="Confidential Splits Logo" style={{ height: '100px', objectFit: 'contain' }} />
-          <Box>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main', letterSpacing: '1px' }}>
-              CONFIDENTIAL SPLITS
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
-              Privacy-Preserving Group Settlements on Midnight
-            </Typography>
-          </Box>
-        </Box>
-        {walletConnected && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
-            <Chip label="1AM Wallet Connected" color="success" variant="outlined" size="small" />
-            <Typography variant="caption" color="text.secondary">
-              Wallet:{' '}
-              {walletAddress.startsWith('mock_wallet_address_')
-                ? walletAddress
-                : `${walletAddress.slice(0, 8)}...${walletAddress.slice(-8)}`}
-            </Typography>
-            <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'primary.light' }}>
-              Role: {currentUserIdx !== null ? `Member (User ${currentUserIdx})` : 'Guest Viewer'}
-            </Typography>
-          </Box>
-        )}
-      </Box>
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
+      <TopNav
+        network={walletNetwork || 'preprod'}
+        walletConnected={walletConnected}
+        walletLabel={shortWallet}
+        roleLabel={roleLabel}
+        infraHealthy={infraHealthy}
+      />
 
-      {/* Invite Landing Banner */}
-      {inviteAddress && !splitsAPI && (
-        <Alert severity="info" sx={{ mb: 4 }} icon={<GroupIcon />}>
-          You have been invited to join group: <strong>{inviteAddress.slice(0, 16)}...</strong>. Connect your wallet and
-          join an empty slot below to participate.
-        </Alert>
-      )}
-
-      {/* 2. Wallet & Diagnostic Landing Panel */}
-      {!walletConnected ? (
-        <Grid container spacing={4}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Paper elevation={3} sx={{ p: 4, height: '100%', borderRadius: 3 }}>
-              <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 3 }}>
-                Connect Wallet
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                Please connect your 1AM Wallet to begin. The DApp will verify your Preprod connection stage, unshielded
-                addresses, and network compatibility.
-              </Typography>
-
-              {txError && (
-                <Alert severity="error" sx={{ mb: 3 }}>
-                  {txError}
-                </Alert>
-              )}
-
-              <Button
-                variant="contained"
-                size="large"
-                color="primary"
-                onClick={() => void connectOneAm()}
-                fullWidth
-                disabled={oneAmDetected === false}
-                sx={{ py: 1.5, borderRadius: 2 }}
+      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 }, flexGrow: 1 }}>
+        {/* ============================ HERO ============================ */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: walletConnected ? '1fr' : '1.05fr 0.95fr' },
+            gap: { xs: 4, md: 5 },
+            alignItems: 'center',
+            mb: { xs: 4, md: 6 },
+          }}
+        >
+          <Box sx={{ animation: 'cs-rise 500ms cubic-bezier(.2,.7,.2,1) both' }}>
+            <Kicker index="00" label="Zero-knowledge group settlements" />
+            <Typography
+              variant="h2"
+              sx={{
+                fontSize: { xs: '2.1rem', sm: '2.7rem', md: walletConnected ? '2.3rem' : '3.1rem' },
+                mb: 2,
+              }}
+            >
+              Split shared costs.
+              <br />
+              <Box
+                component="span"
+                sx={{
+                  background: 'linear-gradient(90deg, #a78bfa 0%, #2dd4bf 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
               >
-                Connect 1AM Wallet
-              </Button>
-              {oneAmDetected === false && (
-                <Typography variant="caption" color="error" sx={{ mt: 2, display: 'block' }}>
-                  1AM Wallet extension not detected in browser. Please install or enable it.
-                </Typography>
-              )}
-            </Paper>
-          </Grid>
+                Keep every balance private.
+              </Box>
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ maxWidth: 560, fontSize: { xs: '0.95rem', md: '1.02rem' }, lineHeight: 1.65 }}
+            >
+              A Splitwise-style expense tracker built on Midnight. Running balances, blinding salts and witness keys
+              never leave your device — only ZK commitments and settlement metadata reach the public ledger.
+            </Typography>
 
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-                Midnight Infrastructure Status
-              </Typography>
-              <List>
-                <ListItem>
-                  <RpcIcon sx={{ mr: 2, color: rpcStatus === 'CONNECTED' ? 'success.main' : 'error.main' }} />
-                  <ListItemText primary="Midnight Preprod RPC" secondary={rpcStatus} />
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <IndexerIcon sx={{ mr: 2, color: indexerStatus === 'CONNECTED' ? 'success.main' : 'error.main' }} />
-                  <ListItemText primary="GraphQL Indexer Server" secondary={indexerStatus} />
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <ProverIcon
-                    sx={{ mr: 2, color: proofServerStatus === 'CONNECTED' ? 'success.main' : 'error.main' }}
-                  />
-                  <ListItemText primary="Local Proof Server (Port 6300)" secondary={proofServerStatus} />
-                </ListItem>
-              </List>
-            </Paper>
-          </Grid>
-        </Grid>
-      ) : (
-        /* 3. Main Dashboard View (Connected) */
-        <Grid container spacing={4}>
-          {/* Active Contract Info */}
-          <Grid size={{ xs: 12 }}>
-            <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 'bold', mb: 1 }}>
-                CURRENT GROUP LEDGER ADDRESS
-              </Typography>
-              {latestContractAddress ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: 2,
-                  }}
+            {!walletConnected && (
+              <Box sx={{ mt: 3.5, display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center' }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={() => void connectOneAm()}
+                  disabled={oneAmDetected === false}
+                  endIcon={<ArrowIcon />}
                 >
+                  Connect 1AM Wallet
+                </Button>
+                <Typography variant="caption" color="text.disabled">
+                  {oneAmDetected === false
+                    ? '1AM extension not detected — install it, then reload'
+                    : oneAmDetected === null
+                      ? 'Looking for the 1AM extension…'
+                      : 'Preprod testnet · no real funds'}
+                </Typography>
+              </Box>
+            )}
+
+            {txError && !walletConnected && (
+              <Alert severity="error" sx={{ mt: 2.5, maxWidth: 560, alignItems: 'flex-start' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.75 }}>
+                  {txError}
+                </Typography>
+                <Box component="ol" sx={{ m: 0, pl: 2.25, '& li': { mb: 0.35, fontSize: '0.8rem' } }}>
+                  <li>Install the 1AM Wallet browser extension and create / import a wallet.</li>
+                  <li>Open it, unlock it, and switch the network to Preprod.</li>
+                  <li>
+                    Start the local proof server:{' '}
+                    <Box component="code" sx={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem' }}>
+                      docker compose -f bboard-cli/proof-server-local.yml up -d
+                    </Box>
+                  </li>
+                  <li>Reload this page and click Connect again.</li>
+                </Box>
+              </Alert>
+            )}
+
+            {/* spec list — replaces the usual chip row */}
+            <Stack spacing={1.25} sx={{ mt: 4, maxWidth: 560 }}>
+              {SPEC.map((s) => (
+                <Box key={s.k} sx={{ display: 'flex', gap: 1.5, alignItems: 'baseline' }}>
                   <Typography
-                    variant="body1"
-                    sx={{ fontFamily: 'monospace', fontWeight: 'bold', wordBreak: 'break-all', color: 'primary.light' }}
+                    component="span"
+                    sx={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      color: 'primary.light',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      minWidth: 92,
+                      flexShrink: 0,
+                    }}
                   >
-                    {latestContractAddress}
+                    {s.k}
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 1.5 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                    {s.v}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+          </Box>
+
+          {!walletConnected && (
+            <Box sx={{ animation: 'cs-rise 620ms cubic-bezier(.2,.7,.2,1) both' }}>
+              <SectionCard
+                title="Midnight infrastructure"
+                subtitle="Live reachability of everything this dApp depends on"
+                kicker="Diagnostics"
+                index="01"
+                icon={<InsightsIcon />}
+                accent="#2dd4bf"
+                glow
+              >
+                <Stack spacing={1.25}>
+                  <InfraStatusRow
+                    icon={<RpcIcon sx={{ fontSize: '1.05rem' }} />}
+                    label="Preprod RPC node"
+                    detail="rpc.preprod.midnight.network"
+                    state={rpcStatus}
+                  />
+                  <InfraStatusRow
+                    icon={<IndexerIcon sx={{ fontSize: '1.05rem' }} />}
+                    label="GraphQL indexer"
+                    detail="indexer.preprod.midnight.network/api/v4"
+                    state={indexerStatus}
+                  />
+                  <InfraStatusRow
+                    icon={<ProverIcon sx={{ fontSize: '1.05rem' }} />}
+                    label="Local proof server"
+                    detail="localhost:6300"
+                    state={proofServerStatus}
+                  />
+                </Stack>
+                {proofServerStatus === 'FAILED' && (
+                  <Alert severity="warning" sx={{ mt: 2 }}>
+                    Start it with{' '}
+                    <Box component="code" sx={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.78em' }}>
+                      docker compose -f bboard-cli/proof-server-local.yml up -d
+                    </Box>
+                  </Alert>
+                )}
+              </SectionCard>
+            </Box>
+          )}
+        </Box>
+
+        {/* ======================= WORKFLOW RAIL ======================= */}
+        <Box sx={{ mb: { xs: 4, md: 5 } }}>
+          <WorkflowStepper activeStep={activeStep} />
+        </Box>
+
+        {/* Persistent prerequisite blocker — the proof server is required for every transaction */}
+        {proofServerStatus === 'FAILED' && (
+          <Alert severity="warning" sx={{ mb: 4, alignItems: 'flex-start' }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Local proof server is offline — wallet connect and every transaction will fail until it is running.
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Start it from the repo root, then reload:{' '}
+              <Box component="code" sx={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.78rem' }}>
+                docker compose -f bboard-cli/proof-server-local.yml up -d
+              </Box>
+            </Typography>
+          </Alert>
+        )}
+
+        {/* Invite banner */}
+        {inviteAddress && !splitsAPI && (
+          <Alert severity="info" sx={{ mb: 4 }} icon={<GroupIcon />}>
+            You have been invited to join group <strong>{inviteAddress.slice(0, 16)}…</strong>. Connect your wallet and
+            take an empty slot below to participate.
+          </Alert>
+        )}
+
+        {/* ========================= DASHBOARD ========================= */}
+        {walletConnected && (
+          <Grid container spacing={3}>
+            {/* Active group ledger */}
+            <Grid size={{ xs: 12 }}>
+              <SectionCard
+                title="Active group ledger"
+                kicker="Session"
+                index="02"
+                subtitle={
+                  latestContractAddress
+                    ? 'Share the invite link to add up to three more members'
+                    : 'Create a new group or connect to an existing contract'
+                }
+                icon={<GroupsIcon />}
+                action={
+                  latestContractAddress ? (
                     <Button
                       size="small"
                       variant="outlined"
@@ -720,240 +887,437 @@ const App: React.FC = () => {
                       startIcon={<CopyIcon />}
                       onClick={copyInviteLink}
                     >
-                      {copiedLink ? 'Copied Invite!' : 'Copy Invite Link'}
+                      {copiedLink ? 'Link copied' : 'Copy invite link'}
                     </Button>
+                  ) : undefined
+                }
+              >
+                {latestContractAddress ? (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5 }}>
+                    <MonoTag value={latestContractAddress} truncate={14} color="#a78bfa" />
+                    <Chip size="small" label={`${memberCount} / 4 members`} />
+                    {ledgerState && (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={allSynced ? 'All balances synced' : 'Sync pending'}
+                        sx={{ color: allSynced ? 'success.light' : 'warning.light', borderColor: 'currentColor' }}
+                      />
+                    )}
                   </Box>
-                </Box>
-              ) : (
-                <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  <TextField
-                    size="small"
-                    label="Splits Contract Address"
-                    value={splitsAddressInput}
-                    onChange={(e) => setSplitsAddressInput(e.target.value)}
-                    sx={{ minWidth: 300 }}
-                  />
-                  <Button variant="contained" onClick={() => void handleConnectToGroup()}>
-                    Join Group
-                  </Button>
-                  <Divider orientation="vertical" flexItem />
-                  <TextField
-                    size="small"
-                    label="New Group Name"
-                    value={groupNameInput}
-                    onChange={(e) => setGroupNameInput(e.target.value)}
-                    sx={{ minWidth: 200 }}
-                  />
-                  <Button variant="contained" color="success" onClick={() => void handleCreateGroup()}>
-                    Create Group
-                  </Button>
-                </Box>
-              )}
-            </Paper>
-          </Grid>
+                ) : (
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                    <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', flex: '1 1 320px' }}>
+                      <TextField
+                        size="small"
+                        label="Existing contract address"
+                        value={splitsAddressInput}
+                        onChange={(e) => setSplitsAddressInput(e.target.value)}
+                        sx={{ minWidth: 240, flexGrow: 1 }}
+                      />
+                      <Button variant="outlined" onClick={() => void handleConnectToGroup()}>
+                        Connect
+                      </Button>
+                    </Box>
+                    <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' } }} />
+                    <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', flex: '1 1 320px' }}>
+                      <TextField
+                        size="small"
+                        label="New group name"
+                        value={groupNameInput}
+                        onChange={(e) => setGroupNameInput(e.target.value)}
+                        sx={{ minWidth: 170, flexGrow: 1 }}
+                      />
+                      <Button variant="contained" color="secondary" onClick={() => void handleCreateGroup()}>
+                        Create group
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+              </SectionCard>
+            </Grid>
 
-          {ledgerState && (
-            <>
-              {/* PUBLIC LEDGER STATE */}
-              <Grid size={{ xs: 12, md: 7 }}>
-                <Paper elevation={3} sx={{ p: 3, borderRadius: 3, height: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#ab47bc', mb: 2 }}>
-                    PUBLIC GROUP DATA (ON-CHAIN)
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
+            {/* Skeleton while the ledger stream warms up */}
+            {connectingToGroup && (
+              <>
+                <Grid size={{ xs: 12, md: 7 }}>
+                  <Paper sx={{ p: 3.25, borderRadius: 3.5 }}>
+                    <Skeleton width={120} height={14} />
+                    <Skeleton width="55%" height={26} sx={{ mt: 1 }} />
+                    <Stack spacing={1.25} sx={{ mt: 2.5 }}>
+                      {[0, 1, 2, 3].map((i) => (
+                        <Skeleton key={i} variant="rounded" height={52} />
+                      ))}
+                    </Stack>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 12, md: 5 }}>
+                  <Paper sx={{ p: 3.25, borderRadius: 3.5, height: '100%' }}>
+                    <Skeleton width={120} height={14} />
+                    <Skeleton variant="rounded" height={92} sx={{ mt: 2 }} />
+                    <Skeleton variant="rounded" height={40} sx={{ mt: 2 }} />
+                    <Skeleton variant="rounded" height={40} sx={{ mt: 1.5 }} />
+                  </Paper>
+                </Grid>
+              </>
+            )}
 
-                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    Participants & Membership Slots:
-                  </Typography>
-                  <List dense>
-                    {ledgerState.members.map((member: string, i: number) => {
-                      const isEmpty = member === '0000000000000000000000000000000000000000000000000000000000000000';
-                      const isCurrentUserMember = currentUserIdx !== null;
+            {ledgerState && (
+              <>
+                {/* PUBLIC LEDGER STATE */}
+                <Grid size={{ xs: 12, md: 7 }}>
+                  <SectionCard
+                    title="Public group data"
+                    kicker="On-chain"
+                    index="03"
+                    subtitle="Everything visible to anyone reading the ledger"
+                    icon={<GroupsIcon />}
+                    sx={{ animationDelay: '60ms' }}
+                  >
+                    <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                      Membership slots
+                    </Typography>
+                    <Stack spacing={1}>
+                      {ledgerState.members.map((member: string, i: number) => {
+                        const isEmpty = member === EMPTY_MEMBER;
+                        const isCurrentUserMember = currentUserIdx !== null;
+                        const isMe = currentUserIdx === i;
 
-                      return (
-                        <ListItem
-                          key={i}
-                          sx={{ px: 0 }}
-                          secondaryAction={
-                            isEmpty && !isCurrentUserMember ? (
-                              <Button
-                                size="small"
-                                variant="contained"
-                                color="primary"
-                                onClick={() => void handleJoinSlot(i)}
-                              >
-                                Join Slot
+                        return (
+                          <Box
+                            key={i}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1.5,
+                              p: 1.25,
+                              borderRadius: 2.5,
+                              border: '1px solid',
+                              borderColor: isMe ? 'primary.main' : 'divider',
+                              bgcolor: isMe ? 'rgba(139,92,246,0.08)' : 'rgba(7,6,11,0.35)',
+                              transition: 'border-color 160ms ease',
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: '50%',
+                                display: 'grid',
+                                placeItems: 'center',
+                                flexShrink: 0,
+                                fontWeight: 700,
+                                fontSize: '0.78rem',
+                                fontFamily: "'JetBrains Mono', monospace",
+                                color: isEmpty ? 'text.disabled' : 'primary.contrastText',
+                                bgcolor: isEmpty ? 'transparent' : 'primary.main',
+                                border: isEmpty ? '1px dashed' : '1px solid transparent',
+                                borderColor: isEmpty ? 'divider' : 'transparent',
+                              }}
+                            >
+                              {i}
+                            </Box>
+                            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                                User {i}
+                                {i === 0 ? ' · Creator' : ''}
+                                {isMe ? ' · You' : ''}
+                              </Typography>
+                              {isEmpty ? (
+                                <Typography variant="caption" color="text.disabled">
+                                  Vacant slot
+                                </Typography>
+                              ) : (
+                                <MonoTag value={member} truncate={9} />
+                              )}
+                            </Box>
+                            {isEmpty && !isCurrentUserMember ? (
+                              <Button size="small" variant="contained" onClick={() => void handleJoinSlot(i)}>
+                                Join slot {i}
                               </Button>
                             ) : !isEmpty ? (
                               <Chip
-                                label={ledgerState.synced_mask[i] ? 'Synced' : 'Sync Pending'}
-                                color={ledgerState.synced_mask[i] ? 'success' : 'warning'}
+                                label={ledgerState.synced_mask[i] ? 'Synced' : 'Pending'}
                                 size="small"
                                 variant="outlined"
+                                sx={{
+                                  color: ledgerState.synced_mask[i] ? 'success.light' : 'warning.light',
+                                  borderColor: 'currentColor',
+                                }}
                               />
                             ) : (
-                              <Typography variant="caption" color="text.secondary">
+                              <Typography variant="caption" color="text.disabled">
                                 Vacant
                               </Typography>
-                            )
-                          }
-                        >
-                          <ListItemText
-                            primary={`User ${i} ${i === 0 ? '(Creator)' : ''}`}
-                            secondary={isEmpty ? 'Vacant Slot' : `${member.slice(0, 16)}...${member.slice(-16)}`}
-                          />
-                        </ListItem>
-                      );
-                    })}
-                  </List>
+                            )}
+                          </Box>
+                        );
+                      })}
+                    </Stack>
 
-                  <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(171, 71, 188, 0.15)', borderRadius: 2 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, color: 'primary.light' }}>
-                      Pending Expense Log:
-                    </Typography>
-                    <Typography variant="body2">Payer: **User {ledgerState.pending_expense_payer_idx}**</Typography>
-                    <Typography variant="body2">
-                      Amount: **{ledgerState.pending_expense_amount.toString()} tNight**
-                    </Typography>
-                    <Typography variant="body2">
-                      Shares Split: [{ledgerState.pending_expense_shares.map((s: bigint) => s.toString()).join(', ')}]
-                    </Typography>
-                  </Box>
-
-                  {ledgerState.pending_payment_status === 1n && (
                     <Box
                       sx={{
-                        mt: 2,
+                        mt: 2.5,
                         p: 2,
-                        bgcolor: 'rgba(76, 175, 80, 0.15)',
-                        borderRadius: 2,
-                        border: '1px solid rgba(76, 175, 80, 0.3)',
+                        bgcolor: 'rgba(139,92,246,0.08)',
+                        borderRadius: 2.5,
+                        border: '1px solid rgba(167,139,250,0.2)',
                       }}
                     >
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5, color: '#81c784' }}>
-                        Pending Settlement Payment Log:
+                      <Typography variant="overline" sx={{ display: 'block', mb: 1, color: 'primary.light' }}>
+                        Pending expense
                       </Typography>
-                      <Typography variant="body2">
-                        Debtor: **User {ledgerState.pending_payment_from.toString()}**
-                      </Typography>
-                      <Typography variant="body2">
-                        Creditor: **User {ledgerState.pending_payment_to.toString()}**
-                      </Typography>
-                      <Typography variant="body2">
-                        Amount: **{ledgerState.pending_payment_amount.toString()} tNight**
-                      </Typography>
+                      <Grid container spacing={1.5}>
+                        <Grid size={{ xs: 6, sm: 4 }}>
+                          <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>
+                            Payer
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}
+                          >
+                            User {ledgerState.pending_expense_payer_idx}
+                          </Typography>
+                        </Grid>
+                        <Grid size={{ xs: 6, sm: 4 }}>
+                          <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>
+                            Amount
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}
+                          >
+                            {ledgerState.pending_expense_amount.toString()} tNight
+                          </Typography>
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                          <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>
+                            Split
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}
+                          >
+                            [{ledgerState.pending_expense_shares.map((s: bigint) => s.toString()).join(', ')}]
+                          </Typography>
+                        </Grid>
+                      </Grid>
                     </Box>
-                  )}
-                </Paper>
-              </Grid>
 
-              {/* SHIELDED PRIVATE STATE */}
-              <Grid size={{ xs: 12, md: 5 }}>
-                <Paper elevation={3} sx={{ p: 3, borderRadius: 3, height: '100%', border: '1px solid #a5d6a7' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#81c784', mb: 2 }}>
-                    YOUR PRIVATE DATA (SHIELDED)
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-
-                  {currentUserIdx !== null ? (
-                    <>
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Active User Index:
+                    {ledgerState.pending_payment_status === 1n && (
+                      <Box
+                        sx={{
+                          mt: 2,
+                          p: 2,
+                          bgcolor: 'rgba(45,212,191,0.08)',
+                          borderRadius: 2.5,
+                          border: '1px solid rgba(45,212,191,0.25)',
+                        }}
+                      >
+                        <Typography variant="overline" sx={{ display: 'block', mb: 1, color: 'secondary.light' }}>
+                          Pending settlement payment
                         </Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                          User {currentUserIdx}
+                        <Typography variant="body2" sx={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                          User {ledgerState.pending_payment_from.toString()}
+                          <ArrowIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mx: 0.75 }} />
+                          User {ledgerState.pending_payment_to.toString()} ·{' '}
+                          <strong>{ledgerState.pending_payment_amount.toString()} tNight</strong>
                         </Typography>
                       </Box>
+                    )}
+                  </SectionCard>
+                </Grid>
 
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Private Net Balance:
-                        </Typography>
-                        <Typography
-                          variant="h5"
+                {/* SHIELDED PRIVATE STATE */}
+                <Grid size={{ xs: 12, md: 5 }}>
+                  <SectionCard
+                    title="Your private data"
+                    kicker="Shielded"
+                    index="04"
+                    subtitle="Computed locally — never transmitted"
+                    icon={<ShieldIcon />}
+                    accent="#2dd4bf"
+                    glow
+                    sx={{ animationDelay: '120ms' }}
+                  >
+                    {currentUserIdx !== null ? (
+                      <>
+                        <Box
                           sx={{
-                            fontWeight: 'bold',
-                            color: (ledgerState.balances[currentUserIdx] || 0n) >= 0n ? '#81c784' : '#ef5350',
+                            p: 2.25,
+                            borderRadius: 3,
+                            mb: 2,
+                            position: 'relative',
+                            overflow: 'hidden',
+                            background: 'linear-gradient(155deg, rgba(45,212,191,0.16), rgba(45,212,191,0.02))',
+                            border: '1px solid rgba(45,212,191,0.28)',
                           }}
                         >
-                          {((ledgerState.balances[currentUserIdx] || 0n) >= 0n ? '+' : '') +
-                            (ledgerState.balances[currentUserIdx] || 0n).toString()}{' '}
-                          tNight
-                        </Typography>
-                      </Box>
+                          <Typography
+                            variant="overline"
+                            sx={{ color: 'text.secondary', display: 'block', fontSize: '0.62rem' }}
+                          >
+                            Private net balance · User {currentUserIdx}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontFamily: "'Space Grotesk', sans-serif",
+                              fontWeight: 700,
+                              fontSize: '2rem',
+                              letterSpacing: '-0.02em',
+                              fontVariantNumeric: 'tabular-nums',
+                              mt: 0.25,
+                              color: netBalance >= 0n ? 'secondary.light' : 'error.light',
+                            }}
+                          >
+                            {netBalance >= 0n ? '+' : '−'}
+                            {Math.abs(Math.round(animatedBalance)).toLocaleString()}
+                            <Box component="span" sx={{ fontSize: '0.9rem', color: 'text.secondary', ml: 0.75 }}>
+                              tNight
+                            </Box>
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {netBalance > 0n
+                              ? 'the group owes you'
+                              : netBalance < 0n
+                                ? 'you owe the group'
+                                : 'settled up'}
+                          </Typography>
+                        </Box>
 
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Private Blinding Salt:
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                          {ledgerState.salts[currentUserIdx]}
-                        </Typography>
-                      </Box>
+                        <Stack spacing={1.5} sx={{ mb: 2.5 }}>
+                          <Box>
+                            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.5 }}>
+                              Private blinding salt
+                            </Typography>
+                            <MonoTag value={String(ledgerState.salts[currentUserIdx])} truncate={12} />
+                          </Box>
+                          <Box>
+                            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.5 }}>
+                              On-chain balance commitment
+                            </Typography>
+                            <MonoTag value={String(ledgerState.balance_commitments[currentUserIdx])} truncate={12} />
+                          </Box>
+                        </Stack>
 
-                      <Box sx={{ mb: 3 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          On-Chain Balance Commitment:
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                          {ledgerState.balance_commitments[currentUserIdx]}
-                        </Typography>
-                      </Box>
+                        <Box sx={{ flexGrow: 1 }} />
 
-                      {!ledgerState.synced_mask[currentUserIdx] ? (
-                        <Button
-                          variant="contained"
-                          color="success"
-                          startIcon={<SyncIcon />}
-                          fullWidth
-                          onClick={() => void handleSyncBalance()}
-                        >
-                          Sync Private Balance (ZK Proof)
-                        </Button>
-                      ) : (
-                        <Alert severity="info">
-                          Your shielded balance is fully synced with the latest ledger expense.
-                        </Alert>
-                      )}
-                    </>
-                  ) : (
-                    <Box sx={{ py: 4, textAlign: 'center' }}>
-                      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                        You are viewing this group as a guest.
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        To participate and view your private shielded state, please join an empty slot on the left
-                        panel.
-                      </Typography>
-                    </Box>
-                  )}
-                </Paper>
-              </Grid>
-
-              {/* SETTLEMENT ENGINE */}
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Paper elevation={3} sx={{ p: 3, borderRadius: 3, height: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-                    Optimized Settlements (Greedy Cash Flow)
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-
-                  {isSettlementValid ? (
-                    optimizedSettlements.length === 0 ? (
-                      <Alert severity="success">All users are fully settled! Net balances are 0.</Alert>
+                        {!ledgerState.synced_mask[currentUserIdx] ? (
+                          <Button
+                            variant="contained"
+                            color="secondary"
+                            startIcon={<SyncIcon />}
+                            fullWidth
+                            onClick={() => void handleSyncBalance()}
+                          >
+                            Sync private balance (ZK proof)
+                          </Button>
+                        ) : (
+                          <Alert severity="success" icon={<VerifiedIcon />}>
+                            Your shielded balance matches the latest ledger expense.
+                          </Alert>
+                        )}
+                      </>
                     ) : (
-                      <List>
-                        {optimizedSettlements.map((settle, i) => {
-                          const isActiveDebtor = currentUserIdx !== null && settle.debtor === currentUserIdx;
-                          const isActiveCreditor = currentUserIdx !== null && settle.creditor === currentUserIdx;
-                          const hasPendingPayment = ledgerState.pending_payment_status === 1n;
+                      <Box
+                        sx={{
+                          flexGrow: 1,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          textAlign: 'center',
+                          py: 5,
+                          gap: 1,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 52,
+                            height: 52,
+                            borderRadius: '50%',
+                            display: 'grid',
+                            placeItems: 'center',
+                            bgcolor: 'rgba(255,255,255,0.03)',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            mb: 0.5,
+                          }}
+                        >
+                          <ShieldIcon sx={{ fontSize: 24, color: 'text.disabled' }} />
+                        </Box>
+                        <Typography variant="body2" color="text.secondary">
+                          You are viewing this group as a guest.
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled" sx={{ maxWidth: 240 }}>
+                          Take an empty slot in the membership panel to unlock your private shielded state.
+                        </Typography>
+                      </Box>
+                    )}
+                  </SectionCard>
+                </Grid>
 
-                          return (
-                            <ListItem
-                              key={i}
-                              secondaryAction={
-                                isActiveDebtor && !hasPendingPayment ? (
+                {/* SETTLEMENT ENGINE */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <SectionCard
+                    title="Optimised settlement"
+                    kicker="Engine"
+                    index="05"
+                    subtitle="Greedy minimum cash-flow — fewest transfers to zero out"
+                    icon={<InsightsIcon />}
+                    sx={{ animationDelay: '180ms' }}
+                  >
+                    {isSettlementValid ? (
+                      optimizedSettlements.length === 0 ? (
+                        <Alert severity="success" icon={<VerifiedIcon />}>
+                          Everyone is settled — all net balances are zero.
+                        </Alert>
+                      ) : (
+                        <Stack spacing={1}>
+                          {optimizedSettlements.map((settle, i) => {
+                            const isActiveDebtor = currentUserIdx !== null && settle.debtor === currentUserIdx;
+                            const isActiveCreditor = currentUserIdx !== null && settle.creditor === currentUserIdx;
+                            const pending = ledgerState.pending_payment_status === 1n;
+
+                            return (
+                              <Box
+                                key={i}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1.5,
+                                  p: 1.5,
+                                  borderRadius: 2.5,
+                                  border: '1px solid',
+                                  borderColor: 'divider',
+                                  bgcolor: 'rgba(7,6,11,0.35)',
+                                }}
+                              >
+                                <Box sx={{ flexGrow: 1 }}>
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      fontWeight: 600,
+                                      fontFamily: "'JetBrains Mono', monospace",
+                                      fontSize: '0.82rem',
+                                    }}
+                                  >
+                                    User {settle.debtor}
+                                    <ArrowIcon
+                                      sx={{
+                                        fontSize: '0.9rem',
+                                        verticalAlign: 'middle',
+                                        mx: 0.75,
+                                        color: 'primary.light',
+                                      }}
+                                    />
+                                    User {settle.creditor}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {settle.amount.toString()} tNight
+                                  </Typography>
+                                </Box>
+                                {isActiveDebtor && !pending ? (
                                   <Button
                                     size="small"
                                     variant="contained"
@@ -962,203 +1326,196 @@ const App: React.FC = () => {
                                       void handlePostPayment(settle.debtor, settle.creditor, settle.amount)
                                     }
                                   >
-                                    Pay Settlement
+                                    Pay
                                   </Button>
-                                ) : isActiveCreditor && hasPendingPayment ? (
+                                ) : isActiveCreditor && pending ? (
                                   <Button
                                     size="small"
                                     variant="contained"
-                                    color="success"
+                                    color="secondary"
                                     onClick={() => void handleClaimPayment()}
                                   >
-                                    Claim Payment
+                                    Claim
                                   </Button>
-                                ) : null
-                              }
-                            >
-                              <ListItemText
-                                primary={`User ${settle.debtor} ➔ User ${settle.creditor}`}
-                                secondary={`${settle.amount.toString()} tNight`}
-                              />
-                            </ListItem>
-                          );
-                        })}
-                      </List>
-                    )
-                  ) : (
-                    <Alert severity="error">{validationError}</Alert>
-                  )}
-                </Paper>
-              </Grid>
-
-              {/* POST EXPENSE ACTION */}
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Paper elevation={3} sx={{ p: 3, borderRadius: 3, height: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-                    Post New Group Expense
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <FormControl size="small" disabled={currentUserIdx === null}>
-                      <InputLabel>Expense Payer</InputLabel>
-                      <Select
-                        value={expensePayer}
-                        label="Expense Payer"
-                        onChange={(e) => setExpensePayer(Number(e.target.value))}
-                      >
-                        {ledgerState.members.map((member, i) => {
-                          if (member !== '0000000000000000000000000000000000000000000000000000000000000000') {
-                            return (
-                              <MenuItem key={i} value={i}>
-                                {currentUserIdx === i ? `You (User ${i})` : `User ${i} (${member.slice(0, 8)}...)`}
-                              </MenuItem>
+                                ) : null}
+                              </Box>
                             );
-                          }
-                          return null;
-                        })}
-                      </Select>
-                    </FormControl>
+                          })}
+                        </Stack>
+                      )
+                    ) : (
+                      <Alert severity="error">{validationError}</Alert>
+                    )}
+                  </SectionCard>
+                </Grid>
 
-                    <TextField
-                      size="small"
-                      label="Amount (tNight)"
-                      value={expenseAmount}
-                      onChange={(e) => setExpenseAmount(e.target.value)}
-                      disabled={currentUserIdx === null}
-                    />
+                {/* POST EXPENSE ACTION */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <SectionCard
+                    title="Post a group expense"
+                    kicker="Action"
+                    index="06"
+                    subtitle="Split equally across all active members"
+                    icon={<ExpenseIcon />}
+                    sx={{ animationDelay: '240ms' }}
+                  >
+                    <Stack spacing={2} sx={{ flexGrow: 1 }}>
+                      <FormControl size="small" disabled={currentUserIdx === null} fullWidth>
+                        <InputLabel>Paid by</InputLabel>
+                        <Select
+                          value={expensePayer}
+                          label="Paid by"
+                          onChange={(e) => setExpensePayer(Number(e.target.value))}
+                        >
+                          {ledgerState.members.map((member, i) => {
+                            if (member !== EMPTY_MEMBER) {
+                              return (
+                                <MenuItem key={i} value={i}>
+                                  {currentUserIdx === i ? `You (User ${i})` : `User ${i} (${member.slice(0, 8)}…)`}
+                                </MenuItem>
+                              );
+                            }
+                            return null;
+                          })}
+                        </Select>
+                      </FormControl>
 
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      startIcon={<ExpenseIcon />}
-                      onClick={() => void handlePostExpense()}
-                      disabled={currentUserIdx === null || !ledgerState.synced_mask.every(Boolean)}
-                    >
-                      Post Split Expense
-                    </Button>
-                    {currentUserIdx === null ? (
-                      <Typography variant="caption" color="error.main">
-                        Only joined group members can post expenses.
-                      </Typography>
-                    ) : !ledgerState.synced_mask.every(Boolean) ? (
-                      <Typography variant="caption" color="warning.main">
-                        All users must sync their previous balances before posting a new expense.
-                      </Typography>
-                    ) : null}
+                      <TextField
+                        size="small"
+                        label="Amount (tNight)"
+                        value={expenseAmount}
+                        onChange={(e) => setExpenseAmount(e.target.value)}
+                        disabled={currentUserIdx === null}
+                        fullWidth
+                      />
+
+                      {currentUserIdx !== null && memberCount > 0 && (
+                        <Typography variant="caption" color="text.disabled">
+                          Each of the {memberCount} member{memberCount === 1 ? '' : 's'} is assigned ≈{' '}
+                          {(() => {
+                            try {
+                              const a = BigInt(expenseAmount || '0');
+                              return a > 0n ? (a / BigInt(memberCount)).toString() : '0';
+                            } catch {
+                              return '—';
+                            }
+                          })()}{' '}
+                          tNight.
+                        </Typography>
+                      )}
+
+                      <Box sx={{ flexGrow: 1 }} />
+
+                      <Button
+                        variant="contained"
+                        startIcon={<ExpenseIcon />}
+                        onClick={() => void handlePostExpense()}
+                        disabled={currentUserIdx === null || !ledgerState.synced_mask.every(Boolean)}
+                        fullWidth
+                      >
+                        Post split expense
+                      </Button>
+                      {currentUserIdx === null ? (
+                        <Typography variant="caption" color="error.main">
+                          Only joined group members can post expenses.
+                        </Typography>
+                      ) : !ledgerState.synced_mask.every(Boolean) ? (
+                        <Typography variant="caption" color="warning.main">
+                          Every member must sync their previous balance before a new expense can be posted.
+                        </Typography>
+                      ) : null}
+                    </Stack>
+                  </SectionCard>
+                </Grid>
+              </>
+            )}
+
+            {/* TRANSACTION FEEDBACK */}
+            {txStage !== 'IDLE' && (
+              <Grid size={{ xs: 12 }}>
+                <Fade in>
+                  <Box>
+                    <TxTimeline stage={txStage} error={txError} />
                   </Box>
-                </Paper>
+                </Fade>
               </Grid>
-            </>
-          )}
+            )}
+          </Grid>
+        )}
 
-          {/* TRANSACTION FEEDBACK STAGE BAR */}
-          {txStage !== 'IDLE' && (
-            <Grid size={{ xs: 12 }}>
-              <Paper elevation={3} sx={{ p: 3, borderRadius: 3, borderLeft: '5px solid #29b6f6' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {txStage !== 'CONFIRMED' && txStage !== 'FAILED' && <CircularProgress size={20} />}
-                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                    Transaction Phase: {txStage}
-                  </Typography>
-                </Box>
-                {txStage === 'CONFIRMED' && (
-                  <Alert severity="success" sx={{ mt: 2 }}>
-                    Transaction executed and confirmed on Preprod!
-                  </Alert>
-                )}
-                {txStage === 'FAILED' && (
-                  <Alert severity="error" sx={{ mt: 2 }}>
-                    {txError}
-                  </Alert>
-                )}
-              </Paper>
-            </Grid>
-          )}
-        </Grid>
+        {/* Developer Simulation Mode Isolated Panel (Isolated from production flow) */}
+        {import.meta.env.DEV && (
+          <Paper
+            sx={{
+              p: 3,
+              mt: 6,
+              borderRadius: 3.5,
+              bgcolor: 'rgba(255, 255, 255, 0.02)',
+              border: '1px dashed',
+              borderColor: 'divider',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+              <SparkleIcon sx={{ color: 'warning.main', fontSize: '1.05rem' }} />
+              <Typography variant="overline" color="warning.main">
+                Developer diagnostics & simulation · local only
+              </Typography>
+            </Box>
+            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 2 }}>
+              Switch the acting participant on a single browser tab to exercise ledger settlements and sync states
+              without four separate wallets. This panel is compiled out of the production build.
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1.5, flexWrap: 'wrap' }}>
+              {[0, 1, 2, 3].map((idx) => (
+                <Button
+                  key={idx}
+                  size="small"
+                  variant="outlined"
+                  color="warning"
+                  onClick={async () => {
+                    setWalletConnected(true);
+                    setWalletAddress(`mock_wallet_address_${idx}`);
+                    setCurrentUserIdx(idx);
+                    setActiveUserIdx(idx);
+                    if (splitsAPI) {
+                      await splitsAPI.changeActiveUser(idx, secretKeys[idx]);
+                    }
+                  }}
+                >
+                  Simulate User {idx}
+                </Button>
+              ))}
+            </Box>
+          </Paper>
+        )}
+      </Container>
+
+      <Footer />
+
+      {(txStage === 'PREPARING' ||
+        txStage === 'PROVING' ||
+        txStage === 'AWAITING_WALLET' ||
+        txStage === 'SUBMITTED' ||
+        txStage === 'CONFIRMING') && (
+        <LinearProgress sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: (t) => t.zIndex.appBar + 1 }} />
       )}
 
-      {/* Developer Simulation Mode Isolated Panel (Isolated from production flow) */}
-      {import.meta.env.DEV && (
-        <Paper
-          elevation={3}
-          sx={{ p: 3, mt: 6, bgcolor: 'rgba(255, 255, 255, 0.03)', border: '1px dashed #666', borderRadius: 3 }}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={5000}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={toast.severity}
+          variant="standard"
+          onClose={() => setToast((t) => ({ ...t, open: false }))}
+          sx={{ boxShadow: '0 20px 50px -20px rgba(0,0,0,0.8)' }}
         >
-          <Typography variant="subtitle2" color="warning.main" sx={{ fontWeight: 'bold', mb: 2 }}>
-            🚧 DEVELOPER DIAGNOSTICS & SIMULATION PANEL (LOCAL DEV ONLY)
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-            Simulate role switching locally on a single browser tab to verify ledger settlements and sync states.
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <Button
-              size="small"
-              variant="outlined"
-              color="warning"
-              onClick={async () => {
-                setWalletConnected(true);
-                setWalletAddress('mock_wallet_address_0');
-                setCurrentUserIdx(0);
-                setActiveUserIdx(0);
-                if (splitsAPI) {
-                  await splitsAPI.changeActiveUser(0, secretKeys[0]);
-                }
-              }}
-            >
-              Simulate User 0
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              color="warning"
-              onClick={async () => {
-                setWalletConnected(true);
-                setWalletAddress('mock_wallet_address_1');
-                setCurrentUserIdx(1);
-                setActiveUserIdx(1);
-                if (splitsAPI) {
-                  await splitsAPI.changeActiveUser(1, secretKeys[1]);
-                }
-              }}
-            >
-              Simulate User 1
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              color="warning"
-              onClick={async () => {
-                setWalletConnected(true);
-                setWalletAddress('mock_wallet_address_2');
-                setCurrentUserIdx(2);
-                setActiveUserIdx(2);
-                if (splitsAPI) {
-                  await splitsAPI.changeActiveUser(2, secretKeys[2]);
-                }
-              }}
-            >
-              Simulate User 2
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              color="warning"
-              onClick={async () => {
-                setWalletConnected(true);
-                setWalletAddress('mock_wallet_address_3');
-                setCurrentUserIdx(3);
-                setActiveUserIdx(3);
-                if (splitsAPI) {
-                  await splitsAPI.changeActiveUser(3, secretKeys[3]);
-                }
-              }}
-            >
-              Simulate User 3
-            </Button>
-          </Box>
-        </Paper>
-      )}
-    </Container>
+          {toast.msg}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 
