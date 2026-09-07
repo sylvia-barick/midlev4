@@ -4,9 +4,139 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bulletin Board</title>
+    <meta name="theme-color" content="#07060b" />
+    <meta
+      name="description"
+      content="Confidential Splits - a privacy-preserving group expense tracker and settlement dApp on the Midnight Network. Balances, blinding salts and witness keys stay private; only ZK commitments touch the public ledger."
+    />
+    <meta property="og:title" content="Confidential Splits" />
+    <meta
+      property="og:description"
+      content="Split shared costs and settle debts with zero-knowledge privacy on Midnight Preprod."
+    />
+    <meta property="og:type" content="website" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>Confidential Splits — Private Group Settlements on Midnight</title>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #07060b;
+      }
+
+      /* Slow-drifting aurora behind all content. Fixed, blurred, GPU-composited. */
+      #cs-aurora {
+        position: fixed;
+        inset: -20vmax;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+        filter: blur(90px) saturate(140%);
+      }
+      #cs-aurora i {
+        position: absolute;
+        display: block;
+        border-radius: 50%;
+        opacity: 0.55;
+        will-change: transform;
+      }
+      #cs-aurora i:nth-child(1) {
+        width: 46vmax;
+        height: 46vmax;
+        left: -6vmax;
+        top: -10vmax;
+        background: radial-gradient(circle at 30% 30%, #7c3aed, transparent 70%);
+        animation: cs-aurora-a 26s ease-in-out infinite;
+      }
+      #cs-aurora i:nth-child(2) {
+        width: 38vmax;
+        height: 38vmax;
+        right: -8vmax;
+        top: 8vmax;
+        background: radial-gradient(circle at 60% 40%, #14b8a6, transparent 70%);
+        opacity: 0.35;
+        animation: cs-aurora-b 32s ease-in-out infinite;
+      }
+      #cs-aurora i:nth-child(3) {
+        width: 40vmax;
+        height: 40vmax;
+        left: 30%;
+        bottom: -18vmax;
+        background: radial-gradient(circle at 50% 50%, #6d28d9, transparent 70%);
+        opacity: 0.4;
+        animation: cs-aurora-a 38s ease-in-out infinite reverse;
+      }
+      @keyframes cs-aurora-a {
+        0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+        50% { transform: translate3d(6%, 4%, 0) scale(1.12); }
+      }
+      @keyframes cs-aurora-b {
+        0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+        50% { transform: translate3d(-7%, -5%, 0) scale(0.9); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #cs-aurora i { animation: none !important; }
+      }
+
+      /* Pre-hydration splash */
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        background: radial-gradient(1200px 700px at 50% -10%, #201436 0%, #07060b 62%);
+        font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+        color: #e9e4f5;
+        z-index: 9999;
+        transition: opacity 0.55s ease;
+      }
+      #boot-splash .ring {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 2.5px solid rgba(167, 139, 250, 0.22);
+        border-top-color: #a78bfa;
+        animation: boot-spin 0.85s linear infinite;
+      }
+      #boot-splash .brand {
+        font-weight: 700;
+        letter-spacing: 0.24em;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #b9a7ef;
+      }
+      #boot-splash .sub {
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 12px;
+        color: #7c7796;
+      }
+      @keyframes boot-spin {
+        to { transform: rotate(360deg); }
+      }
+      body.app-ready #boot-splash {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
   </head>
   <body>
+    <div id="cs-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div id="boot-splash">
+      <div class="ring"></div>
+      <div class="brand">Confidential Splits</div>
+      <div class="sub">Initialising Midnight providers…</div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

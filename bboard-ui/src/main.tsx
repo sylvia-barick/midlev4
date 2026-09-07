@@ -32,7 +32,11 @@ import '@midnight-ntwrk/dapp-connector-api';
 import * as pino from 'pino';
 import { DeployedBoardProvider, DeployedSplitsProvider } from './contexts';
 
-const networkId = import.meta.env.VITE_NETWORK_ID as NetworkId;
+// `VITE_NETWORK_ID` is only defined by the `preprod` / `preview` build modes
+// (see .env.preprod / .env.preview). A plain `vite` / `npm run dev` run has no
+// mode file, so fall back to `preprod` here — otherwise the Midnight libraries
+// throw "Network ID has not been configured" on the first wallet/contract call.
+const networkId = (import.meta.env.VITE_NETWORK_ID as NetworkId) || 'preprod';
 // contract address: 0200dbf964f541e1950883f5b2f539b66fd6111e46ce8e6e9551fbdd180114d5dd5b
 // Ensure that the network IDs are set within the Midnight libraries.
 setNetworkId(networkId);
