@@ -16823,7 +16823,7 @@
     "60ee9e7b03bb2c0b6c07ac3440fb3bada6b13072998e08e83d5b3ad27cba3d7c",
     "cccd6dbd01b95948f56bb84ad441f29608b12b3694a2a71ce4ba0fa8c07f7f4b"
   ],
-  "updatedAt": "2026-08-25T03:01:54.864Z",
-  "complete": false,
-  "stoppedAtAddressCountTarget": null
+  "updatedAt": "2026-08-25T21:14:15.612Z",
+  "complete": true,
+  "stoppedAtAddressCountTarget": 356
 }
