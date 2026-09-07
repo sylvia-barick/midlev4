@@ -118,7 +118,7 @@ It demonstrates a complete, non-trivial ZK application pattern — dynamic multi
 ### CI/CD
 
 <p align="center">
-  <img src="public/cicd.png" width="100%" alt="Confidential Splits CI/CD workflow">
+  <img src="cicd.png" width="100%" alt="Confidential Splits CI/CD workflow">
 </p>
 
 ---
