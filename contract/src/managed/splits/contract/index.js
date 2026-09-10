@@ -142,35 +142,35 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('sync_balance',
                                      'argument 1 (as invoked from Typescript)',
-                                     'splits.compact line 83 char 1',
+                                     'splits.compact line 89 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(typeof(idx_0) === 'bigint' && idx_0 >= 0 && idx_0 <= __compactRuntime.MAX_FIELD)) {
           __compactRuntime.typeError('sync_balance',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'splits.compact line 83 char 1',
+                                     'splits.compact line 89 char 1',
                                      'Field',
                                      idx_0)
         }
         if (!(typeof(old_balance_0) === 'bigint' && old_balance_0 >= 0 && old_balance_0 <= __compactRuntime.MAX_FIELD)) {
           __compactRuntime.typeError('sync_balance',
                                      'argument 2 (argument 3 as invoked from Typescript)',
-                                     'splits.compact line 83 char 1',
+                                     'splits.compact line 89 char 1',
                                      'Field',
                                      old_balance_0)
         }
         if (!(old_salt_0.buffer instanceof ArrayBuffer && old_salt_0.BYTES_PER_ELEMENT === 1 && old_salt_0.length === 32)) {
           __compactRuntime.typeError('sync_balance',
                                      'argument 3 (argument 4 as invoked from Typescript)',
-                                     'splits.compact line 83 char 1',
+                                     'splits.compact line 89 char 1',
                                      'Bytes<32>',
                                      old_salt_0)
         }
         if (!(new_salt_0.buffer instanceof ArrayBuffer && new_salt_0.BYTES_PER_ELEMENT === 1 && new_salt_0.length === 32)) {
           __compactRuntime.typeError('sync_balance',
                                      'argument 4 (argument 5 as invoked from Typescript)',
-                                     'splits.compact line 83 char 1',
+                                     'splits.compact line 89 char 1',
                                      'Bytes<32>',
                                      new_salt_0)
         }
@@ -207,49 +207,49 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('post_payment',
                                      'argument 1 (as invoked from Typescript)',
-                                     'splits.compact line 168 char 1',
+                                     'splits.compact line 174 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(typeof(debtor_idx_0) === 'bigint' && debtor_idx_0 >= 0 && debtor_idx_0 <= __compactRuntime.MAX_FIELD)) {
           __compactRuntime.typeError('post_payment',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'splits.compact line 168 char 1',
+                                     'splits.compact line 174 char 1',
                                      'Field',
                                      debtor_idx_0)
         }
         if (!(typeof(creditor_idx_0) === 'bigint' && creditor_idx_0 >= 0 && creditor_idx_0 <= __compactRuntime.MAX_FIELD)) {
           __compactRuntime.typeError('post_payment',
                                      'argument 2 (argument 3 as invoked from Typescript)',
-                                     'splits.compact line 168 char 1',
+                                     'splits.compact line 174 char 1',
                                      'Field',
                                      creditor_idx_0)
         }
         if (!(typeof(amount_0) === 'bigint' && amount_0 >= 0 && amount_0 <= __compactRuntime.MAX_FIELD)) {
           __compactRuntime.typeError('post_payment',
                                      'argument 3 (argument 4 as invoked from Typescript)',
-                                     'splits.compact line 168 char 1',
+                                     'splits.compact line 174 char 1',
                                      'Field',
                                      amount_0)
         }
         if (!(typeof(old_balance_0) === 'bigint' && old_balance_0 >= 0 && old_balance_0 <= __compactRuntime.MAX_FIELD)) {
           __compactRuntime.typeError('post_payment',
                                      'argument 4 (argument 5 as invoked from Typescript)',
-                                     'splits.compact line 168 char 1',
+                                     'splits.compact line 174 char 1',
                                      'Field',
                                      old_balance_0)
         }
         if (!(old_salt_0.buffer instanceof ArrayBuffer && old_salt_0.BYTES_PER_ELEMENT === 1 && old_salt_0.length === 32)) {
           __compactRuntime.typeError('post_payment',
                                      'argument 5 (argument 6 as invoked from Typescript)',
-                                     'splits.compact line 168 char 1',
+                                     'splits.compact line 174 char 1',
                                      'Bytes<32>',
                                      old_salt_0)
         }
         if (!(new_salt_0.buffer instanceof ArrayBuffer && new_salt_0.BYTES_PER_ELEMENT === 1 && new_salt_0.length === 32)) {
           __compactRuntime.typeError('post_payment',
                                      'argument 6 (argument 7 as invoked from Typescript)',
-                                     'splits.compact line 168 char 1',
+                                     'splits.compact line 174 char 1',
                                      'Bytes<32>',
                                      new_salt_0)
         }
@@ -285,28 +285,28 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('claim_payment',
                                      'argument 1 (as invoked from Typescript)',
-                                     'splits.compact line 205 char 1',
+                                     'splits.compact line 222 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(typeof(old_balance_0) === 'bigint' && old_balance_0 >= 0 && old_balance_0 <= __compactRuntime.MAX_FIELD)) {
           __compactRuntime.typeError('claim_payment',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'splits.compact line 205 char 1',
+                                     'splits.compact line 222 char 1',
                                      'Field',
                                      old_balance_0)
         }
         if (!(old_salt_0.buffer instanceof ArrayBuffer && old_salt_0.BYTES_PER_ELEMENT === 1 && old_salt_0.length === 32)) {
           __compactRuntime.typeError('claim_payment',
                                      'argument 2 (argument 3 as invoked from Typescript)',
-                                     'splits.compact line 205 char 1',
+                                     'splits.compact line 222 char 1',
                                      'Bytes<32>',
                                      old_salt_0)
         }
         if (!(new_salt_0.buffer instanceof ArrayBuffer && new_salt_0.BYTES_PER_ELEMENT === 1 && new_salt_0.length === 32)) {
           __compactRuntime.typeError('claim_payment',
                                      'argument 3 (argument 4 as invoked from Typescript)',
-                                     'splits.compact line 205 char 1',
+                                     'splits.compact line 222 char 1',
                                      'Bytes<32>',
                                      new_salt_0)
         }
@@ -337,14 +337,14 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('join_group',
                                      'argument 1 (as invoked from Typescript)',
-                                     'splits.compact line 236 char 1',
+                                     'splits.compact line 253 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(typeof(idx_0) === 'bigint' && idx_0 >= 0 && idx_0 <= __compactRuntime.MAX_FIELD)) {
           __compactRuntime.typeError('join_group',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'splits.compact line 236 char 1',
+                                     'splits.compact line 253 char 1',
                                      'Field',
                                      idx_0)
         }
@@ -738,6 +738,16 @@ export class Contract {
     const public_payer_idx_0 = payer_idx_0;
     const public_amount_0 = amount_0;
     const public_shares_0 = shares_0;
+    __compactRuntime.assert(public_payer_idx_0 === 0n
+                            ||
+                            public_payer_idx_0 === 1n
+                            ||
+                            public_payer_idx_0 === 2n
+                            ||
+                            public_payer_idx_0 === 3n,
+                            'Invalid payer index');
+    __compactRuntime.assert(public_amount_0 !== 0n,
+                            'Expense amount must be non-zero');
     if (public_payer_idx_0 === 0n) {
       __compactRuntime.assert(this._equal_0(_descriptor_1.fromValue(__compactRuntime.queryLedgerState(context,
                                                                                                       partialProofData,
@@ -2012,6 +2022,26 @@ export class Contract {
     const public_debtor_idx_0 = debtor_idx_0;
     const public_creditor_idx_0 = creditor_idx_0;
     const public_amount_0 = amount_0;
+    __compactRuntime.assert(public_debtor_idx_0 === 0n
+                            ||
+                            public_debtor_idx_0 === 1n
+                            ||
+                            public_debtor_idx_0 === 2n
+                            ||
+                            public_debtor_idx_0 === 3n,
+                            'Invalid debtor index');
+    __compactRuntime.assert(public_creditor_idx_0 === 0n
+                            ||
+                            public_creditor_idx_0 === 1n
+                            ||
+                            public_creditor_idx_0 === 2n
+                            ||
+                            public_creditor_idx_0 === 3n,
+                            'Invalid creditor index');
+    __compactRuntime.assert(public_debtor_idx_0 !== public_creditor_idx_0,
+                            'Debtor and creditor must differ');
+    __compactRuntime.assert(public_amount_0 !== 0n,
+                            'Payment amount must be non-zero');
     const new_balance_0 = __compactRuntime.addField(old_balance_0,
                                                     public_amount_0);
     const new_commit_0 = this._commit_0(new_balance_0, new_salt_0);

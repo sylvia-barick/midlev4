@@ -52,10 +52,16 @@ export circuit post_expense(payer_idx: Field, amount: Field, shares: Vector<4, F
   assert(synced_mask[1], "Previous expense not synced by participant 1");
   assert(synced_mask[2], "Previous expense not synced by participant 2");
   assert(synced_mask[3], "Previous expense not synced by participant 3");
-  
+
   const public_payer_idx = disclose(payer_idx);
   const public_amount = disclose(amount);
   const public_shares = disclose(shares);
+
+  assert(
+    public_payer_idx == 0 || public_payer_idx == 1 || public_payer_idx == 2 || public_payer_idx == 3,
+    "Invalid payer index"
+  );
+  assert(public_amount != 0, "Expense amount must be non-zero");
 
   if (public_payer_idx == 0) {
     assert(members[0] == disclose(publicKey(localSecretKey())), "Caller is not the payer");
@@ -167,10 +173,21 @@ export circuit sync_balance(idx: Field, old_balance: Field, old_salt: Bytes<32>,
 
 export circuit post_payment(debtor_idx: Field, creditor_idx: Field, amount: Field, old_balance: Field, old_salt: Bytes<32>, new_salt: Bytes<32>): [] {
   assert(pending_payment_status == 0, "Other payment is pending");
-  
+
   const public_debtor_idx = disclose(debtor_idx);
   const public_creditor_idx = disclose(creditor_idx);
   const public_amount = disclose(amount);
+
+  assert(
+    public_debtor_idx == 0 || public_debtor_idx == 1 || public_debtor_idx == 2 || public_debtor_idx == 3,
+    "Invalid debtor index"
+  );
+  assert(
+    public_creditor_idx == 0 || public_creditor_idx == 1 || public_creditor_idx == 2 || public_creditor_idx == 3,
+    "Invalid creditor index"
+  );
+  assert(public_debtor_idx != public_creditor_idx, "Debtor and creditor must differ");
+  assert(public_amount != 0, "Payment amount must be non-zero");
 
   const new_balance = old_balance + public_amount;
   const new_commit = disclose(commit(new_balance, new_salt));

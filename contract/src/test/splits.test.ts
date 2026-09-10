@@ -224,7 +224,12 @@ describe("Splits Smart Contract Simulator", () => {
     const sim3 = new SplitsSimulator(user3Key, []);
     const pub3 = sim3.publicKey();
 
-    const mainSim = new SplitsSimulator(user0Key, [pub0, new Uint8Array(32), new Uint8Array(32), new Uint8Array(32)]);
+    const mainSim = new SplitsSimulator(user0Key, [
+      pub0,
+      new Uint8Array(32),
+      new Uint8Array(32),
+      new Uint8Array(32),
+    ]);
     const lInit = mainSim.getLedger();
     expect(lInit.members[0]).toEqual(pub0);
     expect(lInit.members[1]).toEqual(new Uint8Array(32));
@@ -238,13 +243,19 @@ describe("Splits Smart Contract Simulator", () => {
     expect(l1.members[1]).toEqual(pub1);
 
     // Try to join index 0 (overwrite creator) -> should throw
-    expect(() => mainSim.joinGroup(0n)).toThrow("failed assert: Cannot overwrite creator");
+    expect(() => mainSim.joinGroup(0n)).toThrow(
+      "failed assert: Cannot overwrite creator",
+    );
 
     // Try to join invalid slot index -> should throw
-    expect(() => mainSim.joinGroup(4n)).toThrow("failed assert: Invalid slot index");
+    expect(() => mainSim.joinGroup(4n)).toThrow(
+      "failed assert: Invalid slot index",
+    );
 
     // Try to join when already a member -> should throw
-    expect(() => mainSim.joinGroup(2n)).toThrow("failed assert: Already a member");
+    expect(() => mainSim.joinGroup(2n)).toThrow(
+      "failed assert: Already a member",
+    );
 
     // User 2 joins slot 2
     mainSim.switchUser(user2Key);
@@ -261,7 +272,9 @@ describe("Splits Smart Contract Simulator", () => {
     // Try to join occupied slot 1 -> should throw
     const user4Key = new Uint8Array(32).map((_, i) => i + 40);
     mainSim.switchUser(user4Key);
-    expect(() => mainSim.joinGroup(1n)).toThrow("failed assert: Slot 1 already occupied");
+    expect(() => mainSim.joinGroup(1n)).toThrow(
+      "failed assert: Slot 1 already occupied",
+    );
   });
 
   it("allows posting an expense with a valid zero-sum split mapping", () => {
@@ -290,6 +303,22 @@ describe("Splits Smart Contract Simulator", () => {
     expect(() =>
       mainSim.postExpense(1n, 1200n, [300n, 300n, 300n, 300n]),
     ).toThrow("failed assert: Caller is not the payer");
+  });
+
+  it("rejects post_expense with an out-of-range payer index", () => {
+    const { mainSim } = initSimulator();
+    // payer_idx = 4 falls outside every branch, which previously let the
+    // authorization check be skipped entirely while still corrupting state.
+    expect(() =>
+      mainSim.postExpense(4n, 1200n, [300n, 300n, 300n, 300n]),
+    ).toThrow("failed assert: Invalid payer index");
+  });
+
+  it("rejects post_expense with a zero amount", () => {
+    const { mainSim } = initSimulator();
+    expect(() => mainSim.postExpense(0n, 0n, [0n, 0n, 0n, 0n])).toThrow(
+      "failed assert: Expense amount must be non-zero",
+    );
   });
 
   it("supports private balance syncing by participants", () => {
@@ -372,6 +401,50 @@ describe("Splits Smart Contract Simulator", () => {
     expect(lFinal.pending_payment_status).toEqual(0n);
     expect(lFinal.balance_commitments[0]).toEqual(
       computeCommitment(800n, nextSalt0),
+    );
+  });
+
+  it("rejects post_payment with an out-of-range debtor or creditor index", () => {
+    const { mainSim } = initSimulator();
+    mainSim.postExpense(0n, 1200n, [300n, 300n, 300n, 300n]);
+
+    const initialSalt = new Uint8Array(32);
+    const salt1 = new Uint8Array(32).map(() => 2);
+    mainSim.switchUser(user1Key);
+    mainSim.syncBalance(1n, 0n, initialSalt, salt1);
+
+    expect(() =>
+      mainSim.postPayment(4n, 0n, 100n, -300n, salt1, salt1),
+    ).toThrow("failed assert: Invalid debtor index");
+
+    expect(() =>
+      mainSim.postPayment(1n, 4n, 100n, -300n, salt1, salt1),
+    ).toThrow("failed assert: Invalid creditor index");
+  });
+
+  it("rejects post_payment where debtor and creditor are the same participant", () => {
+    const { mainSim } = initSimulator();
+    mainSim.postExpense(0n, 1200n, [300n, 300n, 300n, 300n]);
+
+    const initialSalt = new Uint8Array(32);
+    const salt0 = new Uint8Array(32).map(() => 1);
+    mainSim.syncBalance(0n, 0n, initialSalt, salt0);
+
+    expect(() => mainSim.postPayment(0n, 0n, 100n, 900n, salt0, salt0)).toThrow(
+      "failed assert: Debtor and creditor must differ",
+    );
+  });
+
+  it("rejects post_payment with a zero amount", () => {
+    const { mainSim } = initSimulator();
+    mainSim.postExpense(0n, 1200n, [300n, 300n, 300n, 300n]);
+
+    const initialSalt = new Uint8Array(32);
+    const salt0 = new Uint8Array(32).map(() => 1);
+    mainSim.syncBalance(0n, 0n, initialSalt, salt0);
+
+    expect(() => mainSim.postPayment(0n, 1n, 0n, 900n, salt0, salt0)).toThrow(
+      "failed assert: Payment amount must be non-zero",
     );
   });
 });
