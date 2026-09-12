@@ -16,7 +16,7 @@
 | **Live demo** | [midlev4.vercel.app](https://midlev4.vercel.app/) |
 | **Demo video** | [Google Drive folder](https://drive.google.com/drive/folders/1yGLrMIRjEJaOyin215wK-29l6Ppci6SN?usp=sharing) — `confidential splits.mp4` |
 | **Preprod addresses verified** | **356** distinct wallet addresses with real, independently verifiable on-chain activity — see [§6](#6-50-real-midnight-preprod-addresses) | 
-| **Contract deployment** | **Confirmed on real Preprod** — tx `3cffa9d76a160c27c7d6f8299fbe3d2a3d3cb7b47382107cfd9c8804b1b55f66`, block 2,119,943, contract address `9a378876a47bc46b81d275c8e0c6ba40163009184565eb35414c7cc9d62467fd` — see [§13](#13-implementation-status--commit-history) |
+| **Contract address** | `9a378876a47bc46b81d275c8e0c6ba40163009184565eb35414c7cc9d62467fd` — deployed on real Midnight **Preprod**, tx `3cffa9d76a160c27c7d6f8299fbe3d2a3d3cb7b47382107cfd9c8804b1b55f66`, block 2,119,943 — re-verified against the live indexer on 2026-09-12 (still resolves; see [§13](#13-implementation-status--commit-history)) |
 |**User Feedback Worksheet** | [User Feedbacks & Surveys](https://docs.google.com/spreadsheets/d/1BsMR8rPdG5nlihHdYONUzQYbPFtwB9ut0EiPQGeSeeQ/edit?usp=sharing)|
 | **Network** | Midnight **Preprod** testnet |
 ---
@@ -471,6 +471,7 @@ The recompile regenerated real ZK artifacts for the two changed circuits (tracke
 | Contract address | `9a378876a47bc46b81d275c8e0c6ba40163009184565eb35414c7cc9d62467fd` |
 | Decoded ledger state | `members = [<real pubkey>, 0, 0, 0]`; all four `balance_commitments` equal to the constructor default `commit(0, pad(32,""))`; `synced_mask = [true,true,true,true]`; `pending_payment_status = 0` — i.e. exactly and only the genesis state `constructor(initial_members)` produces |
 | Verify it yourself | `curl` the tx hash against `https://indexer.preprod.midnight.network/api/v4/graphql` per [§7](#7-address-verification-instructions)'s method, or query `contractAction(address: "9a378876...")` for the live state |
+| Last re-verified | **2026-09-12** — re-queried `contractAction(address: "9a378876a47bc46b81d275c8e0c6ba40163009184565eb35414c7cc9d62467fd")` against the live indexer; it still resolves to the same transaction hash and block height above, confirming the deployment is still live on Preprod |
 
 
 **Commit history:** 29 commits on `master`, all authored 2026-08-16, spanning `00:08:15`–`03:50:25`. Each is scoped to one concern rather than being a single monolithic commit:
